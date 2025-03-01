@@ -14,6 +14,15 @@ interface QuranVerse {
   audio: string;
 }
 
+interface JuzInfo {
+  juz: string;
+  juzStartSurahNumber: string;
+  juzEndSurahNumber: string;
+  juzStartInfo: string;
+  juzEndInfo: string;
+  verses: number;
+}
+
 const fetchQuranVerses = async (juzNumber: number) => {
   const response = await fetch(`https://api.myquran.com/v2/quran/ayat/juz/${juzNumber}`);
   if (!response.ok) {
@@ -23,18 +32,43 @@ const fetchQuranVerses = async (juzNumber: number) => {
   return data.data as QuranVerse[];
 };
 
+const fetchJuzInfo = async (juzNumber: number) => {
+  const response = await fetch(`https://api.myquran.com/v2/quran/juz/${juzNumber}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch Juz information");
+  }
+  const data = await response.json();
+  return data.data as JuzInfo;
+};
+
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [juzNumber, setJuzNumber] = useState(1);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [playingVerse, setPlayingVerse] = useState<string | null>(null);
+  const [juzInfo, setJuzInfo] = useState<JuzInfo | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["quranVerses", juzNumber],
     queryFn: () => fetchQuranVerses(juzNumber),
   });
+
+  // Fetch Juz information when juzNumber changes
+  useEffect(() => {
+    const getJuzInfo = async () => {
+      try {
+        const info = await fetchJuzInfo(juzNumber);
+        setJuzInfo(info);
+      } catch (error) {
+        console.error("Error fetching Juz info:", error);
+        toast.error("Failed to load Juz information");
+      }
+    };
+    
+    getJuzInfo();
+  }, [juzNumber]);
 
   // Available juz options for search
   const juzOptions = Array.from({ length: 30 }, (_, i) => ({
@@ -191,6 +225,31 @@ const Index = () => {
               </div>
             )}
           </div>
+          
+          {/* Juz Information Section */}
+          {juzInfo && (
+            <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
+              <h2 className="text-lg font-medium text-gray-800 mb-2">About Juz {juzInfo.juz}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600">
+                    <span className="font-medium">Starts with:</span> {juzInfo.juzStartInfo}
+                  </p>
+                  <p className="text-gray-600">
+                    <span className="font-medium">Ends with:</span> {juzInfo.juzEndInfo}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600">
+                    <span className="font-medium">Surah range:</span> {juzInfo.juzStartSurahNumber} - {juzInfo.juzEndSurahNumber}
+                  </p>
+                  <p className="text-gray-600">
+                    <span className="font-medium">Total verses:</span> {juzInfo.verses}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </header>
 
         <div className="space-y-8">
