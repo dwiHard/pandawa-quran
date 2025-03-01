@@ -1,7 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
-import { Toaster } from "sonner";
+import { useState, useEffect, useRef } from "react";
+import { Toaster, toast } from "sonner";
 
 interface QuranVerse {
   id: string;
@@ -14,8 +14,8 @@ interface QuranVerse {
   audio: string;
 }
 
-const fetchQuranVerses = async () => {
-  const response = await fetch("https://api.myquran.com/v2/quran/ayat/juz/1");
+const fetchQuranVerses = async (juzNumber: number) => {
+  const response = await fetch(`https://api.myquran.com/v2/quran/ayat/juz/${juzNumber}`);
   if (!response.ok) {
     throw new Error("Failed to fetch Quran verses");
   }
@@ -24,13 +24,36 @@ const fetchQuranVerses = async () => {
 };
 
 const Index = () => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["quranVerses"],
-    queryFn: fetchQuranVerses,
-  });
-
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [juzNumber, setJuzNumber] = useState(1);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [playingVerse, setPlayingVerse] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["quranVerses", juzNumber],
+    queryFn: () => fetchQuranVerses(juzNumber),
+  });
+
+  // Available juz options for search
+  const juzOptions = Array.from({ length: 30 }, (_, i) => ({
+    value: i + 1,
+    label: `Juz ${i + 1}`,
+  }));
+
+  // Filter juz options based on search term
+  const filteredOptions = juzOptions.filter((option) =>
+    option.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleSearch = (juzNum: number) => {
+    setJuzNumber(juzNum);
+    setSearchTerm(`Juz ${juzNum}`);
+    setShowDropdown(false);
+    refetch();
+    toast.success(`Loaded Juz ${juzNum}`);
+  };
 
   const playAudio = (audioUrl: string, verseId: string) => {
     if (currentAudio) {
@@ -60,6 +83,20 @@ const Index = () => {
       }
     };
   }, [currentAudio]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -109,7 +146,51 @@ const Index = () => {
       <div className="max-w-4xl mx-auto">
         <header className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Quranic Verses</h1>
-          <p className="text-gray-600">Juz 1 - Surah and Transliteration</p>
+          <p className="text-gray-600">Juz {juzNumber} - Surah and Transliteration</p>
+          
+          {/* Search bar */}
+          <div className="mt-6 max-w-md mx-auto relative" ref={dropdownRef}>
+            <div className="relative">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setShowDropdown(true);
+                }}
+                onFocus={() => setShowDropdown(true)}
+                placeholder="Search for a Juz..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary text-white p-1 rounded-md"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Dropdown for autocomplete */}
+            {showDropdown && (
+              <div className="absolute z-10 w-full mt-1 bg-white shadow-lg rounded-md max-h-60 overflow-auto">
+                {filteredOptions.length > 0 ? (
+                  filteredOptions.map((option) => (
+                    <div
+                      key={option.value}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleSearch(option.value)}
+                    >
+                      {option.label}
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-gray-500">No results found</div>
+                )}
+              </div>
+            )}
+          </div>
         </header>
 
         <div className="space-y-8">
