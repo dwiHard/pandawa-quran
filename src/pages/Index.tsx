@@ -1,8 +1,8 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Toaster, toast } from "sonner";
 import { Moon, Sunrise, Sunset, Sun } from "lucide-react";
+import QuranPlayer from "../components/QuranPlayer";
 
 interface PrayerTime {
   imsak: string;
@@ -39,10 +39,7 @@ const fetchPrayerTimes = async (cityCode: string, date: string) => {
   return data as PrayerScheduleResponse;
 };
 
-// Convert Gregorian date to Hijri date (simplified conversion)
-// In a real app, you would want to use a proper library for this conversion
 const getHijriDate = (): string => {
-  // This is just a placeholder - in a real app this would be a proper conversion
   return "29 Sya'ban, 1446";
 };
 
@@ -56,7 +53,6 @@ const Index = () => {
     queryFn: () => fetchPrayerTimes(cityCode, date),
   });
 
-  // Determine which prayer time is current or next
   useEffect(() => {
     if (data) {
       const now = new Date();
@@ -70,22 +66,18 @@ const Index = () => {
         isya: data.data.jadwal.isya
       };
 
-      // Compare current time with prayer times to find the current or next prayer
       const sortedPrayers = Object.entries(prayerTimes).sort((a, b) => a[1].localeCompare(b[1]));
       
-      // Find the next prayer
       const nextPrayer = sortedPrayers.find(([_, time]) => time > timeStr);
       
       if (nextPrayer) {
         setCurrentPrayer(nextPrayer[0]);
       } else {
-        // If there's no next prayer today, the next is the first prayer of the next day
         setCurrentPrayer("subuh");
       }
     }
   }, [data]);
 
-  // Get icon for each prayer time
   const getPrayerIcon = (prayerName: string, isActive: boolean = false) => {
     const className = `h-6 w-6 ${isActive ? "text-white" : "text-gray-500"}`;
     
@@ -140,7 +132,6 @@ const Index = () => {
     );
   }
 
-  // Get the current time in large format (for the main display)
   const getCurrentPrayerTime = () => {
     if (!data || !currentPrayer) return "";
     
@@ -168,7 +159,6 @@ const Index = () => {
         time = "";
     }
     
-    // Format time to match the design (with big dots)
     if (time) {
       const [hours, minutes] = time.split(":");
       return `${hours}.${minutes}.00`;
@@ -178,12 +168,11 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#9b87f5] p-4">
+    <div className="min-h-screen flex flex-col items-center justify-start bg-[#9b87f5] p-4">
       <Toaster position="top-right" />
       
-      <div className="max-w-xl w-full bg-white rounded-3xl shadow-xl overflow-hidden">
+      <div className="max-w-xl w-full bg-white rounded-3xl shadow-xl overflow-hidden mb-6">
         <div className="p-8">
-          {/* Header with location and Islamic date */}
           <div className="flex justify-between items-start mb-6">
             <div>
               <h1 className="text-4xl font-bold text-gray-800 mb-2">{currentPrayer.charAt(0).toUpperCase() + currentPrayer.slice(1)}</h1>
@@ -200,7 +189,6 @@ const Index = () => {
             </div>
           </div>
           
-          {/* Prayer times grid */}
           <div className="grid grid-cols-6 gap-2 mt-8">
             {[
               { name: "Subuh", key: "subuh" },
@@ -231,10 +219,13 @@ const Index = () => {
           </div>
         </div>
         
-        {/* Footer */}
         <div className="bg-[#9b87f5] text-white py-3 text-center">
           <p className="text-lg font-medium">Sajda</p>
         </div>
+      </div>
+      
+      <div className="max-w-xl w-full">
+        <QuranPlayer />
       </div>
     </div>
   );
