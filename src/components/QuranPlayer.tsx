@@ -34,7 +34,14 @@ const fetchRandomJuz = async () => {
   if (!response.ok) {
     throw new Error("Failed to fetch Quran data");
   }
-  return response.json() as Promise<JuzResponse>;
+  const data = await response.json();
+  
+  // Verify that the response contains necessary data
+  if (!data.data || !data.data.verses || !data.data.verses.length) {
+    throw new Error("Invalid or empty Quran data received");
+  }
+  
+  return data as JuzResponse;
 };
 
 const QuranPlayer = () => {
@@ -48,7 +55,7 @@ const QuranPlayer = () => {
   });
 
   const handlePlayPause = () => {
-    if (!data) return;
+    if (!data || !data.data.verses.length) return;
 
     if (isPlaying) {
       audio.pause();
@@ -87,7 +94,7 @@ const QuranPlayer = () => {
     );
   }
 
-  if (error || !data) {
+  if (error || !data || !data.data || !data.data.verses || data.data.verses.length === 0) {
     return (
       <div className="bg-red-50 p-4 rounded-lg text-red-500">
         <p>Failed to load Quran verses</p>
@@ -95,7 +102,17 @@ const QuranPlayer = () => {
     );
   }
 
-  const currentVerse = data.data.verses[currentVerseIndex];
+  // Make sure we have a valid verse to display
+  const currentVerse = data.data.verses[currentVerseIndex] || data.data.verses[0];
+
+  // Handle invalid state - this should not happen but adding as a safeguard
+  if (!currentVerse) {
+    return (
+      <div className="bg-yellow-50 p-4 rounded-lg text-yellow-600">
+        <p>No verses available to display</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden mt-6">
