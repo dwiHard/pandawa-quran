@@ -1,7 +1,8 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect, useRef } from "react";
 import { Toaster, toast } from "sonner";
+import PrayerTimes from "../components/PrayerTimes";
+import QuranPlayer from "../components/QuranPlayer";
 
 interface QuranVerse {
   id: string;
@@ -55,7 +56,6 @@ const Index = () => {
     queryFn: () => fetchQuranVerses(juzNumber),
   });
 
-  // Fetch Juz information when juzNumber changes
   useEffect(() => {
     const getJuzInfo = async () => {
       try {
@@ -70,13 +70,11 @@ const Index = () => {
     getJuzInfo();
   }, [juzNumber]);
 
-  // Available juz options for search
   const juzOptions = Array.from({ length: 30 }, (_, i) => ({
     value: i + 1,
     label: `Juz ${i + 1}`,
   }));
 
-  // Filter juz options based on search term
   const filteredOptions = juzOptions.filter((option) =>
     option.label.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -118,7 +116,6 @@ const Index = () => {
     };
   }, [currentAudio]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -165,7 +162,6 @@ const Index = () => {
     );
   }
 
-  // Group verses by surah
   const versesGroupedBySurah: Record<string, QuranVerse[]> = {};
   data?.forEach(verse => {
     if (!versesGroupedBySurah[verse.surah]) {
@@ -182,7 +178,6 @@ const Index = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Quranic Verses</h1>
           <p className="text-gray-600">Juz {juzNumber} - Surah and Transliteration</p>
           
-          {/* Search bar */}
           <div className="mt-6 max-w-md mx-auto relative" ref={dropdownRef}>
             <div className="relative">
               <input
@@ -206,7 +201,6 @@ const Index = () => {
               </button>
             </div>
             
-            {/* Dropdown for autocomplete */}
             {showDropdown && (
               <div className="absolute z-10 w-full mt-1 bg-white shadow-lg rounded-md max-h-60 overflow-auto">
                 {filteredOptions.length > 0 ? (
@@ -226,7 +220,6 @@ const Index = () => {
             )}
           </div>
           
-          {/* Juz Information Section */}
           {juzInfo && (
             <div className="mt-6 bg-white p-4 rounded-lg shadow-sm">
               <h2 className="text-lg font-medium text-gray-800 mb-2">About Juz {juzInfo.juz}</h2>
@@ -250,6 +243,10 @@ const Index = () => {
               </div>
             </div>
           )}
+          
+          <PrayerTimes />
+          
+          <QuranPlayer />
         </header>
 
         <div className="space-y-8">
