@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Moon, Sun, Sunrise, Sunset } from "lucide-react";
@@ -18,56 +17,6 @@ interface PrayerTimesData {
     maghrib: string;
     isya: string;
     date: string;
-  };
-}
-
-interface TimeAPIResponse {
-  time: {
-    time: string;
-    date: string;
-    timestamp: number;
-  };
-  location: {
-    latitude: number;
-    longitude: number;
-    elevation: number;
-  };
-  gregorian: {
-    date: string;
-    format: string;
-    day: string;
-    weekday: {
-      en: string;
-    };
-    month: {
-      number: number;
-      en: string;
-    };
-    year: string;
-    designation: {
-      abbreviated: string;
-      expanded: string;
-    };
-  };
-  hijri: {
-    date: string;
-    format: string;
-    day: string;
-    weekday: {
-      en: string;
-      ar: string;
-    };
-    month: {
-      number: number;
-      en: string;
-      ar: string;
-    };
-    year: string;
-    designation: {
-      abbreviated: string;
-      expanded: string;
-    };
-    holidays: string[];
   };
 }
 
@@ -93,15 +42,15 @@ const fetchCurrentTime = async () => {
     throw new Error("Failed to fetch current time");
   }
   const data = await response.json();
-  return data.data as TimeAPIResponse;
+  return data.data;
 };
 
 const PrayerTimes = () => {
   const [currentPrayer, setCurrentPrayer] = useState<string>("");
   const [nextPrayer, setNextPrayer] = useState<string>("");
   const [hijriDate, setHijriDate] = useState<string>("");
-  const [currentTimeDisplay, setCurrentTimeDisplay] = useState<string>("");
-  const [cityCode] = useState<string>("1501"); // Jakarta code
+  const [currentTime, setCurrentTimeDisplay] = useState<string>("");
+  const [cityCode] = useState<string>("1501"); // Jawabaru code
   
   // Format current date as YYYY-MM-DD
   const today = new Date();
@@ -120,22 +69,22 @@ const PrayerTimes = () => {
     staleTime: 30000, // 30 seconds
   });
 
-  useEffect(() => {
+    useEffect(() => {
     if (timeData) {
-      setCurrentTimeDisplay(timeData.time.time);
-      
-      // Format Hijri date
-      const hijriMonth = timeData.hijri.month.en;
-      const hijriDay = timeData.hijri.day;
-      const hijriYear = timeData.hijri.year;
-      setHijriDate(`${hijriDay} ${hijriMonth}, ${hijriYear}`);
+      const currentHour = timeData.time.hour;
+      const currentMinute = timeData.time.minute;
+      setCurrentTimeDisplay(`${currentHour}:${currentMinute}`);
     }
   }, [timeData]);
 
   useEffect(() => {
-    if (data && timeData) {
+    if (data) {
+      // For demo purposes, let's set a placeholder Hijri date
+      setHijriDate("29 Sya'ban, 1446");
+      
       // Determine current prayer time
-      const currentTime = timeData.time.time;
+      const now = new Date();
+      const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       
       const prayerTimes = [
         { name: "subuh", time: data.jadwal.subuh },
@@ -170,9 +119,9 @@ const PrayerTimes = () => {
       setCurrentPrayer(current);
       setNextPrayer(next);
     }
-  }, [data, timeData]);
+  }, [data]);
 
-  if (isLoading || timeLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center p-4">
         <div className="w-4 h-4 border border-t-primary rounded-full animate-spin"></div>
@@ -181,7 +130,7 @@ const PrayerTimes = () => {
     );
   }
 
-  if (error || !data || !timeData) {
+  if (error || !data) {
     return (
       <div className="bg-card p-4 rounded-lg text-muted-foreground text-sm">
         <p>Failed to load prayer times</p>
@@ -189,7 +138,7 @@ const PrayerTimes = () => {
     );
   }
 
-  const currentPrayerDisplay = (() => {
+  const currentTimeDisplay = (() => {
     let time = "";
     let name = "";
     
@@ -260,15 +209,14 @@ const PrayerTimes = () => {
       <div className="bg-muted p-4 text-foreground">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="text-sm text-muted-foreground">{currentPrayerDisplay.name}</h3>
+            <h3 className="text-sm text-muted-foreground">{currentTimeDisplay.name}</h3>
             <p className="text-3xl font-medium tracking-wider">
-              {currentPrayerDisplay.time}
+              {currentTime}
             </p>
           </div>
           <div className="text-right">
             <h3 className="text-base font-medium">{data.lokasi}</h3>
             <p className="text-sm text-muted-foreground">{hijriDate}</p>
-            <p className="text-lg font-bold mt-1">{currentTimeDisplay}</p>
           </div>
         </div>
         
