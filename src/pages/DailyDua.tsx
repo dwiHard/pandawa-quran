@@ -22,26 +22,24 @@ const fetchDua = async (id: number) => {
 };
 
 const fetchAllDuas = async () => {
-  // Fetching dua list one by one with fixed endpoint format
+  // Fetching all duas from 1 to 108
   const promises = [];
-  const duaIds = Array.from({ length: 108 }, (_, i) => i + 1);
-  
-  for (const id of duaIds) {
+  for (let i = 1; i <= 108; i++) {
     promises.push(
-      fetch(`https://api.myquran.com/v2/doa/${id}`)
+      fetch(`https://api.myquran.com/v2/doa/${i}`)
         .then(res => {
-          if (!res.ok) throw new Error(`Failed to fetch dua with id ${id}`);
+          if (!res.ok) throw new Error(`Failed to fetch dua with id ${i}`);
           return res.json();
         })
         .then(data => {
           if (data.status === "true" || data.status === true) {
             return data.data; 
           }
-          console.error(`Invalid data structure for dua ${id}:`, data);
+          console.error(`Invalid data structure for dua ${i}:`, data);
           return null;
         })
         .catch(err => {
-          console.error(`Error fetching dua ${id}:`, err);
+          console.error(`Error fetching dua ${i}:`, err);
           return null; // Return null for failed requests
         })
     );
@@ -83,10 +81,11 @@ const DailyDua = () => {
     }
   }, [duas, selectedDua]);
 
-  // Filter duas based on search term
+  // Filter duas based on search term and ID
   const filteredDuas = duas?.filter(dua => 
     dua.doa.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    dua.artinya.toLowerCase().includes(searchTerm.toLowerCase())
+    dua.artinya.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    dua.id.toString().includes(searchTerm)
   );
 
   const handleSelectDua = (dua: Dua) => {
@@ -174,7 +173,7 @@ const DailyDua = () => {
                   setShowDropdown(true);
                 }}
                 onFocus={() => setShowDropdown(true)}
-                placeholder="Search for a Du'a..."
+                placeholder="Search for a Du'a by name, meaning or ID..."
                 className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-background"
               />
               <button
@@ -196,6 +195,7 @@ const DailyDua = () => {
                       className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
                       onClick={() => handleSelectDua(dua)}
                     >
+                      <span className="inline-block w-8 text-muted-foreground">{dua.id}.</span>
                       {dua.doa}
                     </div>
                   ))
@@ -211,6 +211,7 @@ const DailyDua = () => {
           <div className="bg-card rounded-lg shadow-sm overflow-hidden">
             <div className="bg-muted px-4 py-3 border-b border-border">
               <h2 className="text-lg font-medium">{selectedDua.doa}</h2>
+              <p className="text-xs text-muted-foreground">ID: {selectedDua.id}</p>
             </div>
             <div className="p-4">
               <p className="text-right text-xl mb-3 leading-loose font-arabic">
