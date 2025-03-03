@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Moon, Sun, Sunrise, Sunset } from "lucide-react";
@@ -100,15 +99,15 @@ const PrayerTimes = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-4">
-        <div className="animate-pulse w-8 h-8 border-2 border-t-primary rounded-full animate-spin"></div>
-        <p className="ml-2">Loading prayer times...</p>
+        <div className="w-4 h-4 border border-t-primary rounded-full animate-spin"></div>
+        <p className="ml-2 text-sm text-muted-foreground">Loading prayer times...</p>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="bg-red-50 p-4 rounded-lg text-red-500">
+      <div className="bg-card p-4 rounded-lg text-muted-foreground text-sm">
         <p>Failed to load prayer times</p>
       </div>
     );
@@ -145,74 +144,71 @@ const PrayerTimes = () => {
     { 
       name: "Subuh", 
       time: data.jadwal.subuh, 
-      icon: <Moon className="h-6 w-6 text-gray-500" />,
+      icon: <Moon className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "subuh"
     },
     { 
       name: "Terbit", 
       time: data.jadwal.terbit, 
-      icon: <Sunrise className="h-6 w-6 text-gray-500" />,
+      icon: <Sunrise className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "terbit"
     },
     { 
       name: "Zuhur", 
       time: data.jadwal.dzuhur, 
-      icon: <Sun className="h-6 w-6 text-gray-500" />,
+      icon: <Sun className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "dzuhur"
     },
     { 
       name: "Ashar", 
       time: data.jadwal.ashar, 
-      icon: <Sun className="h-6 w-6 text-gray-500" />,
+      icon: <Sun className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "ashar"
     },
     { 
       name: "Maghrib", 
       time: data.jadwal.maghrib, 
-      icon: <Sunset className="h-6 w-6 text-gray-500" />,
+      icon: <Sunset className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "maghrib"
     },
     { 
       name: "Isya", 
       time: data.jadwal.isya, 
-      icon: <Moon className="h-6 w-6 text-gray-500" />,
+      icon: <Moon className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "isya"
     }
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden mt-6">
-      <div className="bg-[#4a5b89] p-6 text-white">
+    <div className="bg-card rounded-lg shadow-sm overflow-hidden mt-6">
+      <div className="bg-muted p-4 text-foreground">
         <div className="flex justify-between items-start">
           <div>
-            <h3 className="text-xl text-gray-200">{currentTimeDisplay.name}</h3>
-            <p className="text-6xl font-bold tracking-wider">
-              {currentTimeDisplay.time.split(":").join(".")}
+            <h3 className="text-sm text-muted-foreground">{currentTimeDisplay.name}</h3>
+            <p className="text-3xl font-medium tracking-wider">
+              {currentTimeDisplay.time}
             </p>
           </div>
           <div className="text-right">
-            <h3 className="text-xl font-semibold">{data.lokasi}</h3>
-            <p className="text-gray-200">{hijriDate}</p>
+            <h3 className="text-base font-medium">{data.lokasi}</h3>
+            <p className="text-sm text-muted-foreground">{hijriDate}</p>
           </div>
         </div>
         
-        <div className="grid grid-cols-6 gap-2 mt-8">
+        <div className="grid grid-cols-6 gap-2 mt-6">
           {prayerTimes.map((prayer) => (
             <div 
               key={prayer.name}
-              className={`p-4 rounded-lg flex flex-col items-center ${
-                prayer.isCurrent ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-800"
+              className={`p-2 rounded-md flex flex-col items-center ${
+                prayer.isCurrent ? "bg-card-foreground text-foreground" : "bg-card text-foreground"
               }`}
             >
-              <p className="font-medium">{prayer.name}</p>
+              <p className="text-xs font-medium">{prayer.name}</p>
               {prayer.icon}
-              <p className="font-bold mt-2">{prayer.time}</p>
+              <p className="text-xs mt-1">{prayer.time}</p>
             </div>
           ))}
         </div>
-      </div>
-      <div className="bg-[#4a5b89] text-center py-2 text-white border-t border-white/10">
-        <p className="text-sm">Sajda</p>
       </div>
     </div>
   );

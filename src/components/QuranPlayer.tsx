@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Book, PlayCircle, PauseCircle, RefreshCw } from "lucide-react";
@@ -157,32 +156,32 @@ const QuranPlayer = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-6 bg-white rounded-xl shadow-md mt-6">
-        <div className="animate-pulse w-8 h-8 border-2 border-t-[#9b87f5] rounded-full animate-spin"></div>
-        <p className="ml-2">Loading Quran verses...</p>
+      <div className="flex items-center justify-center p-4 bg-card rounded-lg shadow-sm mt-6">
+        <div className="w-4 h-4 border border-t-primary rounded-full animate-spin"></div>
+        <p className="ml-2 text-sm text-muted-foreground">Loading Quran verses...</p>
       </div>
     );
   }
 
   if (error || !data || !data.data || !data.data.verses || data.data.verses.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-md overflow-hidden mt-6">
-        <div className="bg-red-500 text-white p-3 flex justify-between items-center">
+      <div className="bg-card rounded-lg shadow-sm overflow-hidden mt-6">
+        <div className="bg-muted text-foreground p-3 flex justify-between items-center">
           <div className="flex items-center">
-            <Book className="h-5 w-5 mr-2" />
-            <h3 className="font-medium">Quran Player</h3>
+            <Book className="h-4 w-4 mr-2" />
+            <h3 className="text-sm font-medium">Quran Player</h3>
           </div>
         </div>
-        <div className="p-6 text-center">
-          <p className="text-red-500 mb-4">Failed to load Quran verses</p>
-          <p className="text-gray-600 text-sm mb-4">
+        <div className="p-4 text-center">
+          <p className="text-muted-foreground text-sm mb-3">Failed to load Quran verses</p>
+          <p className="text-muted-foreground text-xs mb-3">
             {error instanceof Error ? error.message : "Please check your internet connection and try again."}
           </p>
           <button 
             onClick={handleRetry}
-            className="flex items-center justify-center mx-auto px-4 py-2 bg-[#9b87f5] text-white rounded-md hover:bg-[#8a76e5] transition-colors"
+            className="flex items-center justify-center mx-auto px-3 py-1.5 bg-muted text-foreground rounded-md hover:bg-muted/80 transition-colors text-sm"
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <RefreshCw className="h-3 w-3 mr-1.5" />
             Try Another Juz
           </button>
         </div>
@@ -196,20 +195,20 @@ const QuranPlayer = () => {
   // Handle invalid state - this should not happen but adding as a safeguard
   if (!currentVerse) {
     return (
-      <div className="bg-white rounded-xl shadow-md overflow-hidden mt-6">
-        <div className="bg-[#9b87f5] text-white p-3">
+      <div className="bg-card rounded-lg shadow-sm overflow-hidden mt-6">
+        <div className="bg-muted text-foreground p-3">
           <div className="flex items-center">
-            <Book className="h-5 w-5 mr-2" />
-            <h3 className="font-medium">Quran Player</h3>
+            <Book className="h-4 w-4 mr-2" />
+            <h3 className="text-sm font-medium">Quran Player</h3>
           </div>
         </div>
-        <div className="p-6 text-center">
-          <p className="text-yellow-600">No verses available to display</p>
+        <div className="p-4 text-center">
+          <p className="text-muted-foreground text-sm">No verses available to display</p>
           <button 
             onClick={handleRetry}
-            className="mt-4 px-4 py-2 bg-[#9b87f5] text-white rounded-md hover:bg-[#8a76e5] transition-colors"
+            className="mt-3 px-3 py-1.5 bg-muted text-foreground rounded-md hover:bg-muted/80 transition-colors text-sm"
           >
-            <RefreshCw className="h-4 w-4 mr-2 inline" />
+            <RefreshCw className="h-3 w-3 mr-1.5 inline" />
             Try Another Juz
           </button>
         </div>
@@ -218,53 +217,53 @@ const QuranPlayer = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden mt-6">
-      <div className="bg-[#9b87f5] text-white p-3 flex justify-between items-center">
+    <div className="bg-card rounded-lg shadow-sm overflow-hidden mt-6">
+      <div className="bg-muted text-foreground p-3 flex justify-between items-center">
         <div className="flex items-center">
-          <Book className="h-5 w-5 mr-2" />
-          <h3 className="font-medium">Quran Player</h3>
+          <Book className="h-4 w-4 mr-2" />
+          <h3 className="text-sm font-medium">Quran Player</h3>
         </div>
         <div className="flex items-center">
           <button 
             onClick={handleRetry}
-            className="text-white hover:text-gray-200 transition-colors mr-3"
+            className="text-muted-foreground hover:text-foreground transition-colors mr-3"
             aria-label="Load different Juz"
           >
-            <RefreshCw className="h-5 w-5" />
+            <RefreshCw className="h-4 w-4" />
           </button>
           <button 
             onClick={handlePlayPause}
-            className="text-white hover:text-gray-200 transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
             aria-label={isPlaying ? "Pause" : "Play"}
           >
             {isPlaying ? 
-              <PauseCircle className="h-8 w-8" /> : 
-              <PlayCircle className="h-8 w-8" />
+              <PauseCircle className="h-5 w-5" /> : 
+              <PlayCircle className="h-5 w-5" />
             }
           </button>
         </div>
       </div>
       
       <div className="p-4">
-        <div className="text-sm text-gray-500 mb-2">
+        <div className="text-xs text-muted-foreground mb-2">
           Juz {data.data.juz} • Surah {currentVerse.surah} • Verse {currentVerse.nomor}
         </div>
         
-        <div className="space-y-4">
-          <div className="text-right font-arabic text-2xl leading-loose">
+        <div className="space-y-3">
+          <div className="text-right font-arabic text-lg leading-loose">
             {currentVerse.ar}
           </div>
           
-          <div className="text-gray-700 italic text-sm">
+          <div className="text-muted-foreground italic text-xs">
             {currentVerse.tr}
           </div>
           
-          <div className="text-gray-900">
+          <div className="text-foreground text-sm">
             {currentVerse.idn}
           </div>
         </div>
         
-        <div className="mt-4 flex justify-between text-xs text-gray-500">
+        <div className="mt-3 flex justify-between text-xs text-muted-foreground">
           <span>Verse {currentVerseIndex + 1} of {data.data.verses.length}</span>
           <span>{data.data.juzStartInfo} - {data.data.juzEndInfo}</span>
         </div>
