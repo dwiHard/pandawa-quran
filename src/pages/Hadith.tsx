@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
@@ -27,7 +26,6 @@ interface HadithSource {
   endpoint: string;
 }
 
-// List of available hadith collections
 const hadithSources: HadithSource[] = [
   { id: "arbain", name: "Arbain Nawawi", range: 42, endpoint: "arbain" },
   { id: "bukhari", name: "Bukhari", range: 6638, endpoint: "bukhari" },
@@ -42,7 +40,6 @@ const hadithSources: HadithSource[] = [
   { id: "bm", name: "Bulughul Maram", range: 1697, endpoint: "bm" },
 ];
 
-// This function fetches a specific hadith by collection and number
 const fetchHadith = async ({ collection, number }: { collection: string, number: number }) => {
   const response = await fetch(`https://api.myquran.com/v2/hadits/${collection}/${number}`);
   if (!response.ok) {
@@ -52,7 +49,6 @@ const fetchHadith = async ({ collection, number }: { collection: string, number:
   return data.data as HadithDetail;
 };
 
-// Function to fetch sample hadiths from each collection
 const fetchAllHadithsInfo = async () => {
   const hadithTitles: Record<string, string[]> = {
     "arbain": [
@@ -73,11 +69,9 @@ const fetchAllHadithsInfo = async () => {
     ]
   };
 
-  // Fetch sample hadiths from each collection (first 5 from each)
   const promises = [];
   
   for (const source of hadithSources) {
-    // For each source, fetch just a few sample hadiths
     const sampleSize = Math.min(5, source.range);
     for (let i = 1; i <= sampleSize; i++) {
       const title = source.id === "arbain" && i <= hadithTitles.arbain.length 
@@ -122,13 +116,11 @@ const Hadith = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch all hadiths info for the search dropdown
   const { data: hadithsList, isLoading: isLoadingList } = useQuery({
     queryKey: ["hadithsList"],
     queryFn: fetchAllHadithsInfo,
   });
 
-  // Fetch the selected hadith
   const { data: selectedHadith, isLoading: isLoadingSelected, error } = useQuery({
     queryKey: ["hadith", selectedSource, selectedHadithNumber],
     queryFn: () => selectedHadithNumber ? fetchHadith({ collection: selectedSource, number: selectedHadithNumber }) : null,
@@ -148,11 +140,12 @@ const Hadith = () => {
     };
   }, []);
 
-  // Filter hadiths based on search term
   const filteredHadiths = hadithsList?.filter(hadith => 
-    hadith.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    hadith.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    hadith.text.toLowerCase().includes(searchTerm.toLowerCase())
+    hadith.source === selectedSource && (
+      hadith.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      hadith.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      hadith.text.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   const handleSelectHadith = (hadith: HadithInfo) => {
@@ -166,7 +159,6 @@ const Hadith = () => {
   const selectHadithSource = (sourceId: string) => {
     setSelectedSource(sourceId);
     if (selectedHadithNumber) {
-      // Reset hadith number if switching to a source with fewer hadiths
       const source = hadithSources.find(s => s.id === sourceId);
       if (source && selectedHadithNumber > source.range) {
         setSelectedHadithNumber(1);
@@ -226,13 +218,15 @@ const Hadith = () => {
           
           <MenuNavigation activeSection="hadith" />
           
-          {/* Hadith collection navigation */}
           <div className="mt-6 overflow-x-auto">
             <div className="flex gap-2 pb-2">
               {hadithSources.map((source) => (
                 <button
                   key={source.id}
-                  onClick={() => selectHadithSource(source.id)}
+                  onClick={() => {
+                    selectHadithSource(source.id);
+                    setSearchTerm("");
+                  }}
                   className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-colors ${
                     selectedSource === source.id
                       ? "bg-primary text-primary-foreground"
@@ -245,7 +239,6 @@ const Hadith = () => {
             </div>
           </div>
           
-          {/* Search bar */}
           <div className="mt-4 max-w-sm mx-auto relative" ref={dropdownRef}>
             <div className="relative">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
@@ -259,7 +252,7 @@ const Hadith = () => {
                   setShowDropdown(true);
                 }}
                 onFocus={() => setShowDropdown(true)}
-                placeholder="Search for a Hadits..."
+                placeholder={`Search in ${hadithSources.find(s => s.id === selectedSource)?.name}...`}
                 className="w-full pl-10 pr-3 py-2 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-background"
               />
               <button
@@ -286,7 +279,9 @@ const Hadith = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="px-3 py-2 text-muted-foreground text-sm">No results found</div>
+                  <div className="px-3 py-2 text-muted-foreground text-sm">
+                    No results found in {hadithSources.find(s => s.id === selectedSource)?.name}
+                  </div>
                 )}
               </div>
             )}
