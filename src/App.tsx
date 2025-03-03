@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
+import Home from "./pages/Home";
 import Juz30 from "./pages/Juz30";
 import PrayerTimesPage from "./pages/PrayerTimesPage";
 import DailyDua from "./pages/DailyDua";
@@ -22,7 +22,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/juz30" replace />} />
+          <Route path="/" element={<Navigate to="/quran-player" replace />} />
+          <Route path="/quran-player" element={<Home />} />
           <Route path="/juz30" element={<Juz30 />} />
           <Route path="/prayer-times" element={<PrayerTimesPage />} />
           <Route path="/daily-dua" element={<DailyDua />} />

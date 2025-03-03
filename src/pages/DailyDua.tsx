@@ -24,16 +24,24 @@ const fetchDua = async (id: number) => {
 const fetchAllDuas = async () => {
   // Fetching dua list one by one with fixed endpoint format
   const promises = [];
-  for (let i = 1; i <= 108; i++) {
+  const duaIds = Array.from({ length: 108 }, (_, i) => i + 1);
+  
+  for (const id of duaIds) {
     promises.push(
-      fetch(`https://api.myquran.com/v2/doa/${i}`)
+      fetch(`https://api.myquran.com/v2/doa/${id}`)
         .then(res => {
-          if (!res.ok) throw new Error(`Failed to fetch dua with id ${i}`);
+          if (!res.ok) throw new Error(`Failed to fetch dua with id ${id}`);
           return res.json();
         })
-        .then(data => data.data)
+        .then(data => {
+          if (data.status === "true" || data.status === true) {
+            return data.data; 
+          }
+          console.error(`Invalid data structure for dua ${id}:`, data);
+          return null;
+        })
         .catch(err => {
-          console.error(`Error fetching dua ${i}:`, err);
+          console.error(`Error fetching dua ${id}:`, err);
           return null; // Return null for failed requests
         })
     );
@@ -66,6 +74,14 @@ const DailyDua = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // If no dua is selected and we have data, select the first one
+  useEffect(() => {
+    if (!selectedDua && duas && duas.length > 0) {
+      setSelectedDua(duas[0]);
+      setSearchTerm(duas[0].doa);
+    }
+  }, [duas, selectedDua]);
 
   // Filter duas based on search term
   const filteredDuas = duas?.filter(dua => 
@@ -112,6 +128,26 @@ const DailyDua = () => {
           
           <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
             <p>Failed to load duas. Please try again later.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle the case when no duas are loaded
+  if (!duas || duas.length === 0) {
+    return (
+      <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <header className="text-center mb-10">
+            <h1 className="text-2xl md:text-3xl font-medium mb-2">Do'a Harian</h1>
+            <p className="text-muted-foreground">Daily Prayers</p>
+            
+            <MenuNavigation activeSection="daily-dua" />
+          </header>
+          
+          <div className="bg-card rounded-lg shadow-sm p-6 text-center">
+            <p className="text-muted-foreground">No Du'a data available. Please try again later.</p>
           </div>
         </div>
       </div>
