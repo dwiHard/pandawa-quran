@@ -4,11 +4,18 @@ import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
 import { Toaster, toast } from "sonner";
 
-interface Hadith {
+interface HadithInfo {
   id: number;
   name: string;
-  arab: string;
-  text: string;
+  title: string; // Added title for better search
+}
+
+interface HadithDetail {
+  id: number;
+  contents: {
+    arab: string;
+    text: string;
+  }
 }
 
 // This function fetches a specific hadith by number
@@ -18,13 +25,32 @@ const fetchHadith = async (number: number) => {
     throw new Error(`Failed to fetch hadith number ${number}`);
   }
   const data = await response.json();
-  return data.data;
+  return data.data as HadithDetail;
 };
 
 // This function fetches all available hadiths (arbain 1-42)
 const fetchAllHadithsInfo = async () => {
+  // Define hadith titles (since the API doesn't provide them)
+  const hadithTitles = [
+    "Niat", "Islam, Iman dan Ihsan", "Rukun Islam", "Penciptaan Manusia", 
+    "Perkara Baru dalam Agama", "Halal dan Haram", "Agama adalah Nasihat", 
+    "Perintah Memerangi Manusia", "Perintah dan Larangan", "Makanan yang Baik",
+    "Yakin dan Meninggalkan Keraguan", "Meninggalkan yang Tidak Bermanfaat", 
+    "Mencintai Sesama Muslim", "Larangan Menumpahkan Darah", "Berkata Baik", 
+    "Larangan Marah", "Berbuat Baik dalam Segala Hal", "Takwa kepada Allah", 
+    "Pertolongan Allah", "Malu", "Istiqamah", "Jalan Menuju Surga", 
+    "Bersuci dan Shalat", "Larangan Berbuat Zalim", "Sedekah", 
+    "Mendamaikan Manusia", "Kebajikan dan Dosa", "Nasihat", 
+    "Amal yang Mendekatkan ke Surga", "Batas-batas Allah", "Zuhud", 
+    "Larangan Menimbulkan Bahaya", "Pembuktian dan Sumpah", 
+    "Mengubah Kemungkaran", "Persaudaraan", "Amalan yang Bermanfaat", 
+    "Berbuat Baik", "Catatan Kebaikan dan Keburukan", "Wali Allah", 
+    "Toleransi Agama", "Dunia adalah Ladang Akhirat", "Mengikuti Sunnah"
+  ];
+
   const promises = [];
   for (let i = 1; i <= 42; i++) {
+    const title = hadithTitles[i-1] || `Hadith ${i}`;
     promises.push(
       fetch(`https://api.myquran.com/v2/hadits/arbain/${i}`)
         .then(res => {
@@ -34,18 +60,24 @@ const fetchAllHadithsInfo = async () => {
         .then(data => ({
           id: i,
           name: `Hadith No. ${i}`,
+          title: title,
           // Include a snippet of the text for search purposes
           text: data.data?.contents?.text.substring(0, 50) || "",
         }))
         .catch(err => {
           console.error(`Error fetching hadith ${i}:`, err);
-          return null;
+          return {
+            id: i,
+            name: `Hadith No. ${i}`,
+            title: title,
+            text: ""
+          }; // Return basic info even on error
         })
     );
   }
   
   const results = await Promise.all(promises);
-  return results.filter(Boolean);
+  return results as HadithInfo[];
 };
 
 const Hadith = () => {
@@ -83,12 +115,14 @@ const Hadith = () => {
   // Filter hadiths based on search term
   const filteredHadiths = hadithsList?.filter(hadith => 
     hadith.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    hadith.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     hadith.text.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSelectHadith = (id: number) => {
     setSelectedHadithNumber(id);
-    setSearchTerm(`Hadith No. ${id}`);
+    const selectedHadith = hadithsList?.find(h => h.id === id);
+    setSearchTerm(selectedHadith ? `${selectedHadith.name} - ${selectedHadith.title}` : `Hadith No. ${id}`);
     setShowDropdown(false);
     toast.success(`Loading Hadith No. ${id}`);
   };
@@ -175,7 +209,8 @@ const Hadith = () => {
                       className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
                       onClick={() => handleSelectHadith(hadith.id)}
                     >
-                      {hadith.name}
+                      <div className="font-medium">{hadith.name}</div>
+                      <div className="text-xs text-muted-foreground">{hadith.title}</div>
                     </div>
                   ))
                 ) : (
@@ -189,7 +224,14 @@ const Hadith = () => {
         {selectedHadith ? (
           <div className="bg-card rounded-lg shadow-sm overflow-hidden">
             <div className="bg-muted px-4 py-3 border-b border-border">
-              <h2 className="text-lg font-medium">Hadith No. {selectedHadithNumber}</h2>
+              <h2 className="text-lg font-medium">
+                Hadith No. {selectedHadithNumber} 
+                {hadithsList && selectedHadithNumber && 
+                  <span className="ml-2 font-normal text-sm">
+                    {hadithsList.find(h => h.id === selectedHadithNumber)?.title}
+                  </span>
+                }
+              </h2>
             </div>
             <div className="p-4">
               <p className="text-right text-xl mb-3 leading-loose font-arabic">

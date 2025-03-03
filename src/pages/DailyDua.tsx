@@ -12,8 +12,17 @@ interface Dua {
   artinya: string;
 }
 
+const fetchDua = async (id: number) => {
+  const response = await fetch(`https://api.myquran.com/v2/doa/${id}`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch dua with id ${id}`);
+  }
+  const data = await response.json();
+  return data.data as Dua;
+};
+
 const fetchAllDuas = async () => {
-  // Fetching all duas by making multiple requests (from id 1 to 108)
+  // Fetching dua list one by one with fixed endpoint format
   const promises = [];
   for (let i = 1; i <= 108; i++) {
     promises.push(
