@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
@@ -8,6 +7,7 @@ interface HadithInfo {
   id: number;
   name: string;
   title: string; // Added title for better search
+  text: string;  // Adding the missing text property for search
 }
 
 interface HadithDetail {
