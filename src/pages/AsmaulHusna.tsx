@@ -8,7 +8,7 @@ interface Name {
   id: number;
   latin: string;
   arab: string;
-  arti: string;
+  indo: string;
 }
 
 const fetchAsmaulHusna = async () => {
@@ -83,7 +83,7 @@ const AsmaulHusna = () => {
                   <th className="px-4 py-3 text-left text-sm font-medium">No</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Arabic</th>
                   <th className="px-4 py-3 text-left text-sm font-medium">Latin</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Meaning</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">Artinya</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -92,7 +92,7 @@ const AsmaulHusna = () => {
                     <td className="px-4 py-3 text-sm">{name.id}</td>
                     <td className="px-4 py-3 text-xl text-right font-arabic">{name.arab}</td>
                     <td className="px-4 py-3 text-sm">{name.latin}</td>
-                    <td className="px-4 py-3 text-sm">{name.arti}</td>
+                    <td className="px-4 py-3 text-sm">{name.indo}</td>
                   </tr>
                 ))}
               </tbody>

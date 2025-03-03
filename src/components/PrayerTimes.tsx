@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Moon, Sun, Sunrise, Sunset } from "lucide-react";
@@ -21,35 +20,6 @@ interface PrayerTimesData {
   };
 }
 
-interface TimeData {
-  time: {
-    hour: string;
-    minute: string;
-    second: string;
-    timestamp: number;
-  };
-  date: {
-    hijriah: {
-      day: string;
-      month: {
-        number: number;
-        en: string;
-        ar: string;
-      };
-      year: string;
-    };
-    masehi: {
-      day: string;
-      month: {
-        number: number;
-        en: string;
-        id: string;
-      };
-      year: string;
-    };
-  };
-}
-
 interface PrayerTime {
   name: string;
   time: string;
@@ -66,68 +36,38 @@ const fetchPrayerTimes = async (cityCode: string, date: string) => {
   return data.data as PrayerTimesData;
 };
 
-const fetchCurrentTime = async () => {
-  const response = await fetch("https://api.myquran.com/v2/tools/time");
-  if (!response.ok) {
-    throw new Error("Failed to fetch current time");
-  }
-  const data = await response.json();
-  return data.data as TimeData;
-};
-
 const PrayerTimes = () => {
   const [currentPrayer, setCurrentPrayer] = useState<string>("");
   const [nextPrayer, setNextPrayer] = useState<string>("");
   const [hijriDate, setHijriDate] = useState<string>("");
-  const [cityCode] = useState<string>("1501"); // Default code (can be made configurable)
+  const [cityCode] = useState<string>("1501"); // Jawabaru code
   
   // Format current date as YYYY-MM-DD
   const today = new Date();
   const formattedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   
-  const { data: prayerData, isLoading: isLoadingPrayer, error: prayerError } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["prayerTimes", cityCode, formattedDate],
     queryFn: () => fetchPrayerTimes(cityCode, formattedDate),
     staleTime: 1000 * 60 * 60, // 1 hour
   });
 
-  const { data: timeData, isLoading: isLoadingTime, error: timeError } = useQuery({
-    queryKey: ["currentTime"],
-    queryFn: fetchCurrentTime,
-    refetchInterval: 60000, // Refetch every minute
-  });
-
   useEffect(() => {
-    if (timeData) {
-      // Format hijri date from the API
-      const hijriMonth = timeData.date.hijriah.month.ar;
-      const hijriDay = timeData.date.hijriah.day;
-      const hijriYear = timeData.date.hijriah.year;
-      setHijriDate(`${hijriDay} ${hijriMonth}, ${hijriYear}`);
-    }
-  }, [timeData]);
-
-  useEffect(() => {
-    if (prayerData) {
-      // Determine current prayer time
-      let currentTime;
+    if (data) {
+      // For demo purposes, let's set a placeholder Hijri date
+      setHijriDate("29 Sya'ban, 1446");
       
-      if (timeData) {
-        // Use time from API if available
-        currentTime = `${timeData.time.hour}:${timeData.time.minute}`;
-      } else {
-        // Fallback to device time
-        const now = new Date();
-        currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      }
+      // Determine current prayer time
+      const now = new Date();
+      const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       
       const prayerTimes = [
-        { name: "subuh", time: prayerData.jadwal.subuh },
-        { name: "terbit", time: prayerData.jadwal.terbit },
-        { name: "dzuhur", time: prayerData.jadwal.dzuhur },
-        { name: "ashar", time: prayerData.jadwal.ashar },
-        { name: "maghrib", time: prayerData.jadwal.maghrib },
-        { name: "isya", time: prayerData.jadwal.isya },
+        { name: "subuh", time: data.jadwal.subuh },
+        { name: "terbit", time: data.jadwal.terbit },
+        { name: "dzuhur", time: data.jadwal.dzuhur },
+        { name: "ashar", time: data.jadwal.ashar },
+        { name: "maghrib", time: data.jadwal.maghrib },
+        { name: "isya", time: data.jadwal.isya },
       ];
       
       // Sort prayer times
@@ -154,9 +94,9 @@ const PrayerTimes = () => {
       setCurrentPrayer(current);
       setNextPrayer(next);
     }
-  }, [prayerData, timeData]);
+  }, [data]);
 
-  if (isLoadingPrayer || isLoadingTime) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center p-4">
         <div className="w-4 h-4 border border-t-primary rounded-full animate-spin"></div>
@@ -165,7 +105,7 @@ const PrayerTimes = () => {
     );
   }
 
-  if ((prayerError || timeError) || !prayerData) {
+  if (error || !data) {
     return (
       <div className="bg-card p-4 rounded-lg text-muted-foreground text-sm">
         <p>Failed to load prayer times</p>
@@ -178,22 +118,22 @@ const PrayerTimes = () => {
     let name = "";
     
     if (currentPrayer === "subuh") {
-      time = prayerData.jadwal.subuh;
+      time = data.jadwal.subuh;
       name = "Subuh";
     } else if (currentPrayer === "terbit") {
-      time = prayerData.jadwal.terbit;
+      time = data.jadwal.terbit;
       name = "Terbit";
     } else if (currentPrayer === "dzuhur") {
-      time = prayerData.jadwal.dzuhur;
+      time = data.jadwal.dzuhur;
       name = "Zuhur";
     } else if (currentPrayer === "ashar") {
-      time = prayerData.jadwal.ashar;
+      time = data.jadwal.ashar;
       name = "Ashar";
     } else if (currentPrayer === "maghrib") {
-      time = prayerData.jadwal.maghrib;
+      time = data.jadwal.maghrib;
       name = "Maghrib";
     } else if (currentPrayer === "isya") {
-      time = prayerData.jadwal.isya;
+      time = data.jadwal.isya;
       name = "Isya";
     }
     
@@ -203,37 +143,37 @@ const PrayerTimes = () => {
   const prayerTimes: PrayerTime[] = [
     { 
       name: "Subuh", 
-      time: prayerData.jadwal.subuh, 
+      time: data.jadwal.subuh, 
       icon: <Moon className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "subuh"
     },
     { 
       name: "Terbit", 
-      time: prayerData.jadwal.terbit, 
+      time: data.jadwal.terbit, 
       icon: <Sunrise className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "terbit"
     },
     { 
       name: "Zuhur", 
-      time: prayerData.jadwal.dzuhur, 
+      time: data.jadwal.dzuhur, 
       icon: <Sun className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "dzuhur"
     },
     { 
       name: "Ashar", 
-      time: prayerData.jadwal.ashar, 
+      time: data.jadwal.ashar, 
       icon: <Sun className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "ashar"
     },
     { 
       name: "Maghrib", 
-      time: prayerData.jadwal.maghrib, 
+      time: data.jadwal.maghrib, 
       icon: <Sunset className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "maghrib"
     },
     { 
       name: "Isya", 
-      time: prayerData.jadwal.isya, 
+      time: data.jadwal.isya, 
       icon: <Moon className="h-4 w-4 text-muted-foreground" />,
       isCurrent: currentPrayer === "isya"
     }
@@ -248,20 +188,10 @@ const PrayerTimes = () => {
             <p className="text-3xl font-medium tracking-wider">
               {currentTimeDisplay.time}
             </p>
-            {timeData && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Current time: {timeData.time.hour}:{timeData.time.minute}
-              </p>
-            )}
           </div>
           <div className="text-right">
-            <h3 className="text-base font-medium">{prayerData.lokasi}</h3>
+            <h3 className="text-base font-medium">{data.lokasi}</h3>
             <p className="text-sm text-muted-foreground">{hijriDate}</p>
-            {timeData && (
-              <p className="text-xs text-muted-foreground">
-                {timeData.date.masehi.day} {timeData.date.masehi.month.id} {timeData.date.masehi.year}
-              </p>
-            )}
           </div>
         </div>
         

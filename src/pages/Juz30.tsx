@@ -34,42 +34,18 @@ const fetchQuranVerses = async (juzNumber: number) => {
   return data.data as QuranVerse[];
 };
 
-const fetchJuzInfo = async (juzNumber: number) => {
-  const response = await fetch(`https://api.myquran.com/v2/quran/juz/${juzNumber}`);
-  if (!response.ok) {
-    throw new Error("Failed to fetch Juz information");
-  }
-  const data = await response.json();
-  return data.data as JuzInfo;
-};
-
 const Juz30 = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [juzNumber, setJuzNumber] = useState(30); // Default to Juz 30
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [playingVerse, setPlayingVerse] = useState<string | null>(null);
-  const [juzInfo, setJuzInfo] = useState<JuzInfo | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["quranVerses", juzNumber],
     queryFn: () => fetchQuranVerses(juzNumber),
   });
-
-  useEffect(() => {
-    const getJuzInfo = async () => {
-      try {
-        const info = await fetchJuzInfo(juzNumber);
-        setJuzInfo(info);
-      } catch (error) {
-        console.error("Error fetching Juz info:", error);
-        toast.error("Failed to load Juz information");
-      }
-    };
-    
-    getJuzInfo();
-  }, [juzNumber]);
 
   const juzOptions = Array.from({ length: 30 }, (_, i) => ({
     value: i + 1,
@@ -222,30 +198,6 @@ const Juz30 = () => {
               </div>
             )}
           </div>
-          
-          {juzInfo && (
-            <div className="mt-6 bg-card p-4 rounded-lg shadow-sm">
-              <h2 className="text-base font-medium mb-2">About Juz {juzInfo.juz}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">
-                    <span className="font-medium text-foreground">Starts with:</span> {juzInfo.juzStartInfo}
-                  </p>
-                  <p className="text-muted-foreground">
-                    <span className="font-medium text-foreground">Ends with:</span> {juzInfo.juzEndInfo}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">
-                    <span className="font-medium text-foreground">Surah range:</span> {juzInfo.juzStartSurahNumber} - {juzInfo.juzEndSurahNumber}
-                  </p>
-                  <p className="text-muted-foreground">
-                    <span className="font-medium text-foreground">Total verses:</span> {juzInfo.verses}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
           
           <QuranPlayer />
         </header>

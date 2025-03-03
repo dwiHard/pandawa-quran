@@ -12,10 +12,9 @@ interface HadithInfo {
 
 interface HadithDetail {
   id: number;
-  contents: {
-    arab: string;
-    text: string;
-  }
+  arab: string;
+  indo: string;
+  judul: string;
 }
 
 // This function fetches a specific hadith by number
@@ -153,7 +152,7 @@ const Hadith = () => {
       <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <header className="text-center mb-10">
-            <h1 className="text-2xl md:text-3xl font-medium mb-2">Hadith</h1>
+            <h1 className="text-2xl md:text-3xl font-medium mb-2">Hadits</h1>
             <p className="text-muted-foreground">Arbain Nawawi Collection</p>
             
             <MenuNavigation activeSection="hadith" />
@@ -172,7 +171,7 @@ const Hadith = () => {
       <Toaster position="top-right" />
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">
-          <h1 className="text-2xl md:text-3xl font-medium mb-2">Hadith</h1>
+          <h1 className="text-2xl md:text-3xl font-medium mb-2">Hadits</h1>
           <p className="text-muted-foreground">Arbain Nawawi Collection</p>
           
           <MenuNavigation activeSection="hadith" />
@@ -187,7 +186,7 @@ const Hadith = () => {
                   setShowDropdown(true);
                 }}
                 onFocus={() => setShowDropdown(true)}
-                placeholder="Search for a Hadith..."
+                placeholder="Search for a Hadits..."
                 className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-background"
               />
               <button
@@ -225,26 +224,25 @@ const Hadith = () => {
           <div className="bg-card rounded-lg shadow-sm overflow-hidden">
             <div className="bg-muted px-4 py-3 border-b border-border">
               <h2 className="text-lg font-medium">
-                Hadith No. {selectedHadithNumber} 
                 {hadithsList && selectedHadithNumber && 
                   <span className="ml-2 font-normal text-sm">
-                    {hadithsList.find(h => h.id === selectedHadithNumber)?.title}
+                    {selectedHadith?.judul}
                   </span>
                 }
               </h2>
             </div>
             <div className="p-4">
               <p className="text-right text-xl mb-3 leading-loose font-arabic">
-                {selectedHadith.contents?.arab}
+                {selectedHadith?.arab}
               </p>
               <p className="text-foreground text-sm mt-4">
-                {selectedHadith.contents?.text}
+                {selectedHadith?.indo}
               </p>
             </div>
           </div>
         ) : (
           <div className="bg-card rounded-lg shadow-sm p-6 text-center">
-            <p className="text-muted-foreground">Please search and select a Hadith to view its details</p>
+            <p className="text-muted-foreground">Please search and select a Hadits to view its details</p>
           </div>
         )}
       </div>
