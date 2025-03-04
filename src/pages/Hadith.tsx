@@ -25,20 +25,21 @@ interface HadithSource {
   name: string;
   range: number;
   endpoint: string;
+  hasRandomEndpoint: boolean;
 }
 
 const hadithSources: HadithSource[] = [
-  { id: "arbain", name: "Arbain Nawawi", range: 42, endpoint: "arbain" },
-  { id: "bukhari", name: "Bukhari", range: 6638, endpoint: "bukhari" },
-  { id: "muslim", name: "Muslim", range: 4930, endpoint: "muslim" },
-  { id: "abu-dawud", name: "Abu Dawud", range: 4419, endpoint: "abu-dawud" },
-  { id: "tirmidzi", name: "Tirmidzi", range: 3625, endpoint: "tirmidzi" },
-  { id: "nasai", name: "Nasai", range: 5364, endpoint: "nasai" },
-  { id: "ibnu-majah", name: "Ibnu Majah", range: 4285, endpoint: "ibnu-majah" },
-  { id: "ahmad", name: "Ahmad", range: 4305, endpoint: "ahmad" },
-  { id: "malik", name: "Malik", range: 1587, endpoint: "malik" },
-  { id: "darimi", name: "Darimi", range: 2949, endpoint: "darimi" },
-  { id: "bm", name: "Bulughul Maram", range: 1697, endpoint: "bm" },
+  { id: "arbain", name: "Arbain Nawawi", range: 42, endpoint: "arbain", hasRandomEndpoint: true },
+  { id: "bukhari", name: "Bukhari", range: 6638, endpoint: "bukhari", hasRandomEndpoint: false },
+  { id: "muslim", name: "Muslim", range: 4930, endpoint: "muslim", hasRandomEndpoint: false },
+  { id: "abu-dawud", name: "Abu Dawud", range: 4419, endpoint: "abu-dawud", hasRandomEndpoint: false },
+  { id: "tirmidzi", name: "Tirmidzi", range: 3625, endpoint: "tirmidzi", hasRandomEndpoint: false },
+  { id: "nasai", name: "Nasai", range: 5364, endpoint: "nasai", hasRandomEndpoint: false },
+  { id: "ibnu-majah", name: "Ibnu Majah", range: 4285, endpoint: "ibnu-majah", hasRandomEndpoint: false },
+  { id: "ahmad", name: "Ahmad", range: 4305, endpoint: "ahmad", hasRandomEndpoint: false },
+  { id: "malik", name: "Malik", range: 1587, endpoint: "malik", hasRandomEndpoint: false },
+  { id: "darimi", name: "Darimi", range: 2949, endpoint: "darimi", hasRandomEndpoint: false },
+  { id: "bm", name: "Bulughul Maram", range: 1697, endpoint: "bm", hasRandomEndpoint: true },
 ];
 
 const fetchHadith = async ({ collection, number }: { collection: string, number: number }) => {
@@ -50,16 +51,24 @@ const fetchHadith = async ({ collection, number }: { collection: string, number:
   return data.data as HadithDetail;
 };
 
-const fetchRandomHadith = async (collection: string) => {
-  const response = await fetch(`https://api.myquran.com/v2/hadits/${collection}/acak`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch random hadith from ${collection}`);
+// Modified function to fetch random hadith with manual randomization for collections without random endpoint
+const fetchRandomHadith = async (source: HadithSource) => {
+  if (source.hasRandomEndpoint) {
+    // Use API's random endpoint for collections that support it
+    const response = await fetch(`https://api.myquran.com/v2/hadits/${source.endpoint}/acak`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch random hadith from ${source.name}`);
+    }
+    const data = await response.json();
+    return data.data as HadithDetail;
+  } else {
+    // Manual randomization for collections without random endpoint
+    const randomNumber = Math.floor(Math.random() * source.range) + 1;
+    return fetchHadith({ collection: source.endpoint, number: randomNumber });
   }
-  const data = await response.json();
-  return data.data as HadithDetail;
 };
 
-// Modified function to fetch hadiths based on collection source and its range
+// Modified function to fetch hadiths based on collection source and its full range
 const fetchHadithsInfoBySource = async (source: HadithSource) => {
   const hadithTitles: Record<string, string[]> = {
     "arbain": [
@@ -81,9 +90,10 @@ const fetchHadithsInfoBySource = async (source: HadithSource) => {
   };
   
   const promises = [];
-  const maxFetchCount = Math.min(20, source.range); // Limit to 20 hadiths to prevent too many requests
+  // Use the full range of hadiths for each collection, not limited to 20
+  const fetchCount = source.range <= 100 ? source.range : 100; // Limit to 100 for very large collections
   
-  for (let i = 1; i <= maxFetchCount; i++) {
+  for (let i = 1; i <= fetchCount; i++) {
     const title = source.id === "arbain" && i <= hadithTitles.arbain.length 
       ? hadithTitles.arbain[i-1] 
       : `Hadith ${i}`;
@@ -140,7 +150,7 @@ const Hadith = () => {
 
   const { data: randomHadith, isLoading: isLoadingRandom, refetch: refetchRandomHadith } = useQuery({
     queryKey: ["randomHadith", selectedSource],
-    queryFn: () => fetchRandomHadith(selectedSource),
+    queryFn: () => fetchRandomHadith(currentSource),
     enabled: !selectedHadithNumber,
   });
 
