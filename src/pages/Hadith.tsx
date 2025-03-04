@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
@@ -58,7 +59,8 @@ const fetchRandomHadith = async (collection: string) => {
   return data.data as HadithDetail;
 };
 
-const fetchAllHadithsInfo = async () => {
+// Modified function to fetch hadiths based on collection source and its range
+const fetchHadithsInfoBySource = async (source: HadithSource) => {
   const hadithTitles: Record<string, string[]> = {
     "arbain": [
       "Niat", "Islam, Iman dan Ihsan", "Rukun Islam", "Penciptaan Manusia", 
@@ -77,41 +79,39 @@ const fetchAllHadithsInfo = async () => {
       "Toleransi Agama", "Dunia adalah Ladang Akhirat", "Mengikuti Sunnah"
     ]
   };
-
-  const promises = [];
   
-  for (const source of hadithSources) {
-    const sampleSize = Math.min(5, source.range);
-    for (let i = 1; i <= sampleSize; i++) {
-      const title = source.id === "arbain" && i <= hadithTitles.arbain.length 
-        ? hadithTitles.arbain[i-1] 
-        : `Hadith ${i}`;
-        
-      promises.push(
-        fetch(`https://api.myquran.com/v2/hadits/${source.endpoint}/${i}`)
-          .then(res => {
-            if (!res.ok) throw new Error(`Failed to fetch hadith ${i} from ${source.name}`);
-            return res.json();
-          })
-          .then(data => ({
+  const promises = [];
+  const maxFetchCount = Math.min(20, source.range); // Limit to 20 hadiths to prevent too many requests
+  
+  for (let i = 1; i <= maxFetchCount; i++) {
+    const title = source.id === "arbain" && i <= hadithTitles.arbain.length 
+      ? hadithTitles.arbain[i-1] 
+      : `Hadith ${i}`;
+      
+    promises.push(
+      fetch(`https://api.myquran.com/v2/hadits/${source.endpoint}/${i}`)
+        .then(res => {
+          if (!res.ok) throw new Error(`Failed to fetch hadith ${i} from ${source.name}`);
+          return res.json();
+        })
+        .then(data => ({
+          id: i,
+          name: `${source.name} No. ${i}`,
+          title: title,
+          text: data.data?.contents?.text || data.data?.indo || "",
+          source: source.id
+        }))
+        .catch(err => {
+          console.error(`Error fetching hadith ${i} from ${source.name}:`, err);
+          return {
             id: i,
             name: `${source.name} No. ${i}`,
             title: title,
-            text: data.data?.contents?.text || data.data?.indo || "",
+            text: "",
             source: source.id
-          }))
-          .catch(err => {
-            console.error(`Error fetching hadith ${i} from ${source.name}:`, err);
-            return {
-              id: i,
-              name: `${source.name} No. ${i}`,
-              title: title,
-              text: "",
-              source: source.id
-            };
-          })
-      );
-    }
+          };
+        })
+    );
   }
   
   const results = await Promise.all(promises);
@@ -124,10 +124,12 @@ const Hadith = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const currentSource = hadithSources.find(s => s.id === selectedSource) || hadithSources[0];
 
-  const { data: hadithsList, isLoading: isLoadingList } = useQuery({
-    queryKey: ["hadithsList"],
-    queryFn: fetchAllHadithsInfo,
+  // Updated to fetch hadiths based on selected source only
+  const { data: hadithsList, isLoading: isLoadingList, refetch: refetchHadiths } = useQuery({
+    queryKey: ["hadithsList", selectedSource],
+    queryFn: () => fetchHadithsInfoBySource(currentSource),
   });
 
   const { data: selectedHadith, isLoading: isLoadingSelected, error } = useQuery({
@@ -155,16 +157,23 @@ const Hadith = () => {
     };
   }, []);
 
-  const filteredHadiths = hadithsList?.filter(hadith => 
-    hadith.source === selectedSource && (
-      hadith.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      hadith.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      hadith.text.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  // Reset search and selected hadith when source changes
+  useEffect(() => {
+    setSearchTerm("");
+    setSelectedHadithNumber(null);
+    refetchHadiths();
+  }, [selectedSource, refetchHadiths]);
+
+  const filteredHadiths = searchTerm.trim() === ""
+    ? []
+    : hadithsList?.filter(hadith =>
+        hadith.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        hadith.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        hadith.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        hadith.id.toString() === searchTerm.trim()
+      );
 
   const handleSelectHadith = (hadith: HadithInfo) => {
-    setSelectedSource(hadith.source);
     setSelectedHadithNumber(hadith.id);
     setSearchTerm(`${hadith.name} - ${hadith.title}`);
     setShowDropdown(false);
@@ -176,6 +185,17 @@ const Hadith = () => {
     setSelectedHadithNumber(null);
     setSearchTerm("");
     refetchRandomHadith();
+  };
+
+  const handleSearchByNumber = () => {
+    const numericInput = parseInt(searchTerm.trim());
+    if (!isNaN(numericInput) && numericInput > 0 && numericInput <= currentSource.range) {
+      setSelectedHadithNumber(numericInput);
+      setShowDropdown(false);
+      toast.success(`Loading ${currentSource.name} Hadith #${numericInput}`);
+    } else if (!isNaN(numericInput)) {
+      toast.error(`Please enter a valid number between 1 and ${currentSource.range}`);
+    }
   };
 
   const handleRefreshRandom = () => {
@@ -265,11 +285,16 @@ const Hadith = () => {
                   setShowDropdown(true);
                 }}
                 onFocus={() => setShowDropdown(true)}
-                placeholder={`Search in ${hadithSources.find(s => s.id === selectedSource)?.name}...`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearchByNumber();
+                  }
+                }}
+                placeholder={`Search in ${currentSource.name} (1-${currentSource.range})...`}
                 className="w-full pl-10 pr-3 py-2 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-background"
               />
               <button
-                onClick={() => setShowDropdown(!showDropdown)}
+                onClick={() => handleSearchByNumber()}
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -278,7 +303,7 @@ const Hadith = () => {
               </button>
             </div>
             
-            {showDropdown && (
+            {showDropdown && searchTerm.trim() !== "" && (
               <div className="absolute z-10 w-full mt-1 bg-card shadow-sm rounded-md max-h-60 overflow-auto">
                 {filteredHadiths && filteredHadiths.length > 0 ? (
                   filteredHadiths.map((hadith) => (
@@ -293,7 +318,7 @@ const Hadith = () => {
                   ))
                 ) : (
                   <div className="px-3 py-2 text-muted-foreground text-sm">
-                    No results found in {hadithSources.find(s => s.id === selectedSource)?.name}
+                    No results found. Enter a number between 1-{currentSource.range} to load directly.
                   </div>
                 )}
               </div>
