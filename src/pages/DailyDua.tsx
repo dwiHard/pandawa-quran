@@ -12,19 +12,33 @@ interface Dua {
   artinya: string;
 }
 
-const fetchDua = async (id: number) => {
+// Fetch a single dua by ID
+const fetchDua = async (id: number): Promise<Dua> => {
+  console.log(`Fetching dua with ID: ${id}`);
   const response = await fetch(`https://api.myquran.com/v2/doa/${id}`);
   if (!response.ok) {
     throw new Error(`Failed to fetch dua with id ${id}`);
   }
   const data = await response.json();
-  return data.data as Dua;
+  return data.data;
 };
 
-const fetchAllDuas = async () => {
-  // Fetching all duas from 1 to 108
+// Fetch a random dua (between 1-108)
+const fetchRandomDua = async (): Promise<Dua> => {
+  const randomId = Math.floor(Math.random() * 108) + 1;
+  return fetchDua(randomId);
+};
+
+// Search duas by keyword
+const searchDuas = async (keyword: string): Promise<Dua[]> => {
+  console.log(`Searching duas with keyword: ${keyword}`);
+  // For simplicity, we'll fetch a range of duas and filter them client-side
+  // This is more efficient than fetching all 108 duas
+  const searchRange = 20; // Fetch 20 duas for searching
+  const startId = Math.floor(Math.random() * (108 - searchRange)) + 1;
+  
   const promises = [];
-  for (let i = 1; i <= 108; i++) {
+  for (let i = startId; i < startId + searchRange; i++) {
     promises.push(
       fetch(`https://api.myquran.com/v2/doa/${i}`)
         .then(res => {
@@ -33,31 +47,51 @@ const fetchAllDuas = async () => {
         })
         .then(data => {
           if (data.status === "true" || data.status === true) {
-            return data.data; 
+            return data.data;
           }
-          console.error(`Invalid data structure for dua ${i}:`, data);
           return null;
         })
         .catch(err => {
           console.error(`Error fetching dua ${i}:`, err);
-          return null; // Return null for failed requests
+          return null;
         })
     );
   }
   
   const results = await Promise.all(promises);
-  return results.filter(Boolean) as Dua[]; // Filter out null values
+  const filteredResults = results.filter(Boolean) as Dua[];
+  
+  // Filter by keyword if provided
+  if (keyword && keyword.trim() !== "") {
+    return filteredResults.filter(dua => 
+      dua.doa.toLowerCase().includes(keyword.toLowerCase()) ||
+      dua.artinya.toLowerCase().includes(keyword.toLowerCase()) ||
+      dua.id.toString().includes(keyword)
+    );
+  }
+  
+  return filteredResults;
 };
 
 const DailyDua = () => {
   const [selectedDua, setSelectedDua] = useState<Dua | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const { data: duas, isLoading, error } = useQuery({
-    queryKey: ["duas"],
-    queryFn: fetchAllDuas,
+  // Query for initial random dua
+  const { data: randomDua, isLoading: isLoadingRandom } = useQuery({
+    queryKey: ["randomDua"],
+    queryFn: fetchRandomDua,
+    enabled: !isSearching && !selectedDua,
+  });
+
+  // Query for search results
+  const { data: searchResults, isLoading: isSearchLoading } = useQuery({
+    queryKey: ["searchDuas", searchTerm],
+    queryFn: () => searchDuas(searchTerm),
+    enabled: isSearching && searchTerm.length > 0,
   });
 
   useEffect(() => {
@@ -73,29 +107,44 @@ const DailyDua = () => {
     };
   }, []);
 
-  // If no dua is selected and we have data, select the first one
+  // Set the initial random dua when it loads
   useEffect(() => {
-    if (!selectedDua && duas && duas.length > 0) {
-      setSelectedDua(duas[0]);
-      setSearchTerm(duas[0].doa);
+    if (!selectedDua && randomDua) {
+      setSelectedDua(randomDua);
+      setSearchTerm(randomDua.doa);
     }
-  }, [duas, selectedDua]);
+  }, [randomDua, selectedDua]);
 
-  // Filter duas based on search term and ID
-  const filteredDuas = duas?.filter(dua => 
-    dua.doa.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    dua.artinya.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    dua.id.toString().includes(searchTerm)
-  );
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setIsSearching(true);
+    setShowDropdown(true);
+  };
 
   const handleSelectDua = (dua: Dua) => {
     setSelectedDua(dua);
     setSearchTerm(dua.doa);
     setShowDropdown(false);
+    setIsSearching(false);
     toast.success(`Loaded: ${dua.doa}`);
   };
 
-  if (isLoading) {
+  // Handle searching for a specific dua ID
+  const handleSearchById = async (id: number) => {
+    try {
+      const dua = await fetchDua(id);
+      setSelectedDua(dua);
+      setSearchTerm(dua.doa);
+      toast.success(`Loaded: ${dua.doa}`);
+    } catch (error) {
+      toast.error("Failed to find dua with that ID");
+    }
+  };
+
+  const isLoading = isLoadingRandom || isSearchLoading;
+
+  if (isLoading && !selectedDua) {
     return (
       <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
@@ -108,45 +157,6 @@ const DailyDua = () => {
           
           <div className="flex justify-center">
             <div className="w-12 h-12 border-2 border-t-primary rounded-full animate-spin"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <header className="text-center mb-10">
-            <h1 className="text-2xl md:text-3xl font-medium mb-2">Do'a Harian</h1>
-            <p className="text-muted-foreground">Daily Prayers</p>
-            
-            <MenuNavigation activeSection="daily-dua" />
-          </header>
-          
-          <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
-            <p>Failed to load duas. Please try again later.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Handle the case when no duas are loaded
-  if (!duas || duas.length === 0) {
-    return (
-      <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <header className="text-center mb-10">
-            <h1 className="text-2xl md:text-3xl font-medium mb-2">Do'a Harian</h1>
-            <p className="text-muted-foreground">Daily Prayers</p>
-            
-            <MenuNavigation activeSection="daily-dua" />
-          </header>
-          
-          <div className="bg-card rounded-lg shadow-sm p-6 text-center">
-            <p className="text-muted-foreground">No Du'a data available. Please try again later.</p>
           </div>
         </div>
       </div>
@@ -168,10 +178,7 @@ const DailyDua = () => {
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setShowDropdown(true);
-                }}
+                onChange={handleSearchChange}
                 onFocus={() => setShowDropdown(true)}
                 placeholder="Search for a Du'a by name, meaning or ID..."
                 className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-background"
@@ -186,10 +193,10 @@ const DailyDua = () => {
               </button>
             </div>
             
-            {showDropdown && (
+            {showDropdown && searchResults && (
               <div className="absolute z-10 w-full mt-1 bg-card shadow-sm rounded-md max-h-60 overflow-auto">
-                {filteredDuas && filteredDuas.length > 0 ? (
-                  filteredDuas.map((dua) => (
+                {searchResults.length > 0 ? (
+                  searchResults.map((dua) => (
                     <div
                       key={dua.id}
                       className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
