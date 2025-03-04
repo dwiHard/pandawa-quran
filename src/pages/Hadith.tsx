@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
 import { Toaster, toast } from "sonner";
-import { Book, Search } from "lucide-react";
+import { Book, Search, RefreshCw } from "lucide-react";
 
 interface HadithInfo {
   id: number;
@@ -44,6 +44,15 @@ const fetchHadith = async ({ collection, number }: { collection: string, number:
   const response = await fetch(`https://api.myquran.com/v2/hadits/${collection}/${number}`);
   if (!response.ok) {
     throw new Error(`Failed to fetch hadith number ${number} from ${collection}`);
+  }
+  const data = await response.json();
+  return data.data as HadithDetail;
+};
+
+const fetchRandomHadith = async (collection: string) => {
+  const response = await fetch(`https://api.myquran.com/v2/hadits/${collection}/acak`);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch random hadith from ${collection}`);
   }
   const data = await response.json();
   return data.data as HadithDetail;
@@ -127,6 +136,12 @@ const Hadith = () => {
     enabled: !!selectedHadithNumber,
   });
 
+  const { data: randomHadith, isLoading: isLoadingRandom, refetch: refetchRandomHadith } = useQuery({
+    queryKey: ["randomHadith", selectedSource],
+    queryFn: () => fetchRandomHadith(selectedSource),
+    enabled: !selectedHadithNumber,
+  });
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -158,19 +173,20 @@ const Hadith = () => {
 
   const selectHadithSource = (sourceId: string) => {
     setSelectedSource(sourceId);
-    if (selectedHadithNumber) {
-      const source = hadithSources.find(s => s.id === sourceId);
-      if (source && selectedHadithNumber > source.range) {
-        setSelectedHadithNumber(1);
-      }
-    } else {
-      setSelectedHadithNumber(1);
-    }
+    setSelectedHadithNumber(null);
+    setSearchTerm("");
+    refetchRandomHadith();
   };
 
-  const isLoading = isLoadingList || (selectedHadithNumber && isLoadingSelected);
+  const handleRefreshRandom = () => {
+    refetchRandomHadith();
+    toast.success(`Loading random hadith from ${hadithSources.find(s => s.id === selectedSource)?.name}`);
+  };
 
-  if (isLoading && !selectedHadith) {
+  const isLoading = isLoadingList || (selectedHadithNumber && isLoadingSelected) || (!selectedHadithNumber && isLoadingRandom);
+  const displayHadith = selectedHadithNumber ? selectedHadith : randomHadith;
+
+  if (isLoading && !displayHadith) {
     return (
       <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
@@ -189,7 +205,7 @@ const Hadith = () => {
     );
   }
 
-  if (error && selectedHadithNumber) {
+  if ((error && selectedHadithNumber) || (error && !selectedHadithNumber && !displayHadith)) {
     return (
       <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
@@ -223,10 +239,7 @@ const Hadith = () => {
               {hadithSources.map((source) => (
                 <button
                   key={source.id}
-                  onClick={() => {
-                    selectHadithSource(source.id);
-                    setSearchTerm("");
-                  }}
+                  onClick={() => selectHadithSource(source.id)}
                   className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-colors ${
                     selectedSource === source.id
                       ? "bg-primary text-primary-foreground"
@@ -288,59 +301,79 @@ const Hadith = () => {
           </div>
         </header>
 
-        {selectedHadith ? (
+        {displayHadith ? (
           <div className="bg-card rounded-lg shadow-sm overflow-hidden">
             <div className="bg-muted px-4 py-3 border-b border-border flex justify-between items-center">
               <div>
                 <h2 className="text-lg font-medium flex items-center">
                   <Book className="h-4 w-4 mr-2" />
-                  {hadithSources.find(s => s.id === selectedSource)?.name} #{selectedHadithNumber}
+                  {selectedHadithNumber ? (
+                    `${hadithSources.find(s => s.id === selectedSource)?.name} #${selectedHadithNumber}`
+                  ) : (
+                    `Random ${hadithSources.find(s => s.id === selectedSource)?.name} Hadith`
+                  )}
                 </h2>
-                {selectedHadith.judul && (
+                {displayHadith.judul && (
                   <span className="text-sm text-muted-foreground">
-                    {selectedHadith.judul}
+                    {displayHadith.judul}
                   </span>
                 )}
               </div>
               
               <div className="flex space-x-2">
-                <button
-                  onClick={() => setSelectedHadithNumber(prev => (prev && prev > 1) ? prev - 1 : 1)}
-                  disabled={selectedHadithNumber === 1}
-                  className="p-1 rounded hover:bg-muted-foreground/10 disabled:opacity-50"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => {
-                    const source = hadithSources.find(s => s.id === selectedSource);
-                    if (source && selectedHadithNumber && selectedHadithNumber < source.range) {
-                      setSelectedHadithNumber(selectedHadithNumber + 1);
-                    }
-                  }}
-                  disabled={!selectedHadithNumber || selectedHadithNumber >= (hadithSources.find(s => s.id === selectedSource)?.range || 1)}
-                  className="p-1 rounded hover:bg-muted-foreground/10 disabled:opacity-50"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
-                </button>
+                {!selectedHadithNumber && (
+                  <button
+                    onClick={handleRefreshRandom}
+                    className="p-1 rounded hover:bg-muted-foreground/10"
+                    title="Load another random hadith"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </button>
+                )}
+                {selectedHadithNumber && (
+                  <>
+                    <button
+                      onClick={() => setSelectedHadithNumber(prev => (prev && prev > 1) ? prev - 1 : 1)}
+                      disabled={selectedHadithNumber === 1}
+                      className="p-1 rounded hover:bg-muted-foreground/10 disabled:opacity-50"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => {
+                        const source = hadithSources.find(s => s.id === selectedSource);
+                        if (source && selectedHadithNumber && selectedHadithNumber < source.range) {
+                          setSelectedHadithNumber(selectedHadithNumber + 1);
+                        }
+                      }}
+                      disabled={!selectedHadithNumber || selectedHadithNumber >= (hadithSources.find(s => s.id === selectedSource)?.range || 1)}
+                      className="p-1 rounded hover:bg-muted-foreground/10 disabled:opacity-50"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
             <div className="p-4">
               <p className="text-right text-xl mb-3 leading-loose font-arabic">
-                {selectedHadith?.arab}
+                {displayHadith?.arab}
               </p>
               <p className="text-foreground text-sm mt-4">
-                {selectedHadith?.indo}
+                {displayHadith?.indo}
               </p>
             </div>
           </div>
         ) : (
           <div className="bg-card rounded-lg shadow-sm p-6 text-center">
-            <p className="text-muted-foreground">Please search and select a Hadits to view its details</p>
+            <p className="text-muted-foreground">Loading random hadith...</p>
+            <div className="mt-4 flex justify-center">
+              <div className="w-8 h-8 border-2 border-t-primary rounded-full animate-spin"></div>
+            </div>
           </div>
         )}
       </div>
