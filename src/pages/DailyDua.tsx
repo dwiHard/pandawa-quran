@@ -15,7 +15,7 @@ interface Dua {
 // Fetch a single dua by ID
 const fetchDua = async (id: number): Promise<Dua> => {
   console.log(`Fetching dua with ID: ${id}`);
-  const response = await fetch(`https://api.myquran.com/v2/doa/${id}`);
+  const response = await fetch(`https://api.myquran.com/v2/doa/id/${id}`);
   if (!response.ok) {
     throw new Error(`Failed to fetch dua with id ${id}`);
   }
@@ -40,7 +40,7 @@ const searchDuas = async (keyword: string): Promise<Dua[]> => {
   const promises = [];
   for (let i = startId; i < startId + searchRange; i++) {
     promises.push(
-      fetch(`https://api.myquran.com/v2/doa/${i}`)
+      fetch(`https://api.myquran.com/v2/doa/id/${i}`)
         .then(res => {
           if (!res.ok) throw new Error(`Failed to fetch dua with id ${i}`);
           return res.json();
