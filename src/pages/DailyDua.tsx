@@ -32,8 +32,19 @@ const fetchRandomDua = async (): Promise<Dua> => {
 // Search duas by keyword
 const searchDuas = async (keyword: string): Promise<Dua[]> => {
   console.log(`Searching duas with keyword: ${keyword}`);
-  // For simplicity, we'll fetch a range of duas and filter them client-side
-  // This is more efficient than fetching all 108 duas
+  
+  // If searching by ID (assuming it's a number)
+  if (/^\d+$/.test(keyword) && parseInt(keyword) >= 1 && parseInt(keyword) <= 108) {
+    try {
+      const dua = await fetchDua(parseInt(keyword));
+      return [dua];
+    } catch (error) {
+      console.error("Error fetching dua by ID:", error);
+      return [];
+    }
+  }
+  
+  // For text search, fetch multiple duas and filter
   const searchRange = 20; // Fetch 20 duas for searching
   const startId = Math.floor(Math.random() * (108 - searchRange)) + 1;
   
@@ -63,10 +74,10 @@ const searchDuas = async (keyword: string): Promise<Dua[]> => {
   
   // Filter by keyword if provided
   if (keyword && keyword.trim() !== "") {
+    const lowercaseKeyword = keyword.toLowerCase();
     return filteredResults.filter(dua => 
-      dua.doa.toLowerCase().includes(keyword.toLowerCase()) ||
-      dua.artinya.toLowerCase().includes(keyword.toLowerCase()) ||
-      dua.id.toString().includes(keyword)
+      dua.doa.toLowerCase().includes(lowercaseKeyword) ||
+      dua.artinya.toLowerCase().includes(lowercaseKeyword)
     );
   }
   
@@ -81,10 +92,15 @@ const DailyDua = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Query for initial random dua
-  const { data: randomDua, isLoading: isLoadingRandom } = useQuery({
+  const { data: randomDua, isLoading: isLoadingRandom, refetch: refetchRandom } = useQuery({
     queryKey: ["randomDua"],
     queryFn: fetchRandomDua,
-    enabled: !isSearching && !selectedDua,
+    enabled: !selectedDua, // Only fetch when no dua is selected
+    retry: 3,
+    onError: (error) => {
+      console.error("Error fetching random dua:", error);
+      toast.error("Failed to load random dua. Please try again.");
+    }
   });
 
   // Query for search results
@@ -92,6 +108,11 @@ const DailyDua = () => {
     queryKey: ["searchDuas", searchTerm],
     queryFn: () => searchDuas(searchTerm),
     enabled: isSearching && searchTerm.length > 0,
+    retry: 2,
+    onError: (error) => {
+      console.error("Error searching duas:", error);
+      toast.error("Failed to search. Please try again.");
+    }
   });
 
   useEffect(() => {
@@ -109,7 +130,7 @@ const DailyDua = () => {
 
   // Set the initial random dua when it loads
   useEffect(() => {
-    if (!selectedDua && randomDua) {
+    if (randomDua && !selectedDua) {
       setSelectedDua(randomDua);
       setSearchTerm(randomDua.doa);
     }
@@ -118,8 +139,14 @@ const DailyDua = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setIsSearching(true);
-    setShowDropdown(true);
+    
+    if (value.trim() !== "") {
+      setIsSearching(true);
+      setShowDropdown(true);
+    } else {
+      setIsSearching(false);
+      setShowDropdown(false);
+    }
   };
 
   const handleSelectDua = (dua: Dua) => {
@@ -128,6 +155,14 @@ const DailyDua = () => {
     setShowDropdown(false);
     setIsSearching(false);
     toast.success(`Loaded: ${dua.doa}`);
+  };
+
+  // Get a new random dua
+  const handleGetRandomDua = async () => {
+    setSelectedDua(null);
+    setSearchTerm("");
+    await refetchRandom();
+    toast.info("Loading a new random dua...");
   };
 
   // Handle searching for a specific dua ID
@@ -142,9 +177,9 @@ const DailyDua = () => {
     }
   };
 
-  const isLoading = isLoadingRandom || isSearchLoading;
+  const isLoading = (isLoadingRandom || isSearchLoading) && !selectedDua;
 
-  if (isLoading && !selectedDua) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
@@ -193,24 +228,35 @@ const DailyDua = () => {
               </button>
             </div>
             
-            {showDropdown && searchResults && (
+            {showDropdown && searchResults && searchResults.length > 0 && (
               <div className="absolute z-10 w-full mt-1 bg-card shadow-sm rounded-md max-h-60 overflow-auto">
-                {searchResults.length > 0 ? (
-                  searchResults.map((dua) => (
-                    <div
-                      key={dua.id}
-                      className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                      onClick={() => handleSelectDua(dua)}
-                    >
-                      <span className="inline-block w-8 text-muted-foreground">{dua.id}.</span>
-                      {dua.doa}
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-3 py-2 text-muted-foreground text-sm">No results found</div>
-                )}
+                {searchResults.map((dua) => (
+                  <div
+                    key={dua.id}
+                    className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
+                    onClick={() => handleSelectDua(dua)}
+                  >
+                    <span className="inline-block w-8 text-muted-foreground">{dua.id}.</span>
+                    {dua.doa}
+                  </div>
+                ))}
               </div>
             )}
+            
+            {showDropdown && searchResults && searchResults.length === 0 && searchTerm.trim() !== "" && (
+              <div className="absolute z-10 w-full mt-1 bg-card shadow-sm rounded-md">
+                <div className="px-3 py-2 text-muted-foreground text-sm">No results found</div>
+              </div>
+            )}
+          </div>
+          
+          <div className="mt-4">
+            <button
+              onClick={handleGetRandomDua}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+            >
+              Get Random Du'a
+            </button>
           </div>
         </header>
 
