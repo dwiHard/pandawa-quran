@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Juz30 from "./pages/Juz30";
+import Tafsir from "./pages/Tafsir";
 import PrayerTimesPage from "./pages/PrayerTimesPage";
 import DailyDua from "./pages/DailyDua";
 import AsmaulHusna from "./pages/AsmaulHusna";
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/" element={<Navigate to="/quran-player" replace />} />
           <Route path="/quran-player" element={<Home />} />
           <Route path="/juz30" element={<Juz30 />} />
+          <Route path="/tafsir" element={<Tafsir />} />
           <Route path="/prayer-times" element={<PrayerTimesPage />} />
           <Route path="/daily-dua" element={<DailyDua />} />
           <Route path="/asmaul-husna" element={<AsmaulHusna />} />
