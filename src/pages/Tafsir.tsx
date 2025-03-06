@@ -173,8 +173,16 @@ const Tafsir = () => {
           <div className="space-y-6">
             <div className="bg-card rounded-lg shadow-sm overflow-hidden">
               <div className="bg-muted px-4 py-3 border-b border-border">
-                <h2 className="text-lg font-medium">{data.nama_latin}</h2>
-                <p className="text-xs text-muted-foreground">{data.tempat_turun} • {data.jumlah_ayat} Ayat</p>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-medium">{data.nama_latin}</h2>
+                  <div className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+                    {data.tempat_turun}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-sm text-muted-foreground">{data.arti}</p>
+                  <p className="text-xs text-muted-foreground">{data.jumlah_ayat} Ayat</p>
+                </div>
               </div>
               <div className="p-4">
                 <p className="text-muted-foreground mb-4 text-sm">
@@ -185,8 +193,11 @@ const Tafsir = () => {
             
             {data.ayat && data.ayat.map((verse, index) => (
               <div key={verse.id} className="bg-card rounded-lg shadow-sm overflow-hidden">
-                <div className="bg-muted px-4 py-2 border-b border-border">
+                <div className="bg-muted px-4 py-2 border-b border-border flex justify-between items-center">
                   <h2 className="text-md font-medium">Ayat {verse.id}</h2>
+                  <div className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
+                    {data.nama_latin}
+                  </div>
                 </div>
                 <div className="p-4">
                   <p className="text-right text-xl mb-3 leading-loose font-arabic">
