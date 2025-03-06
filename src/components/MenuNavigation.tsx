@@ -9,6 +9,7 @@ import {
   SunDim,
   MoonStar,
   Home,
+  Heart,
 } from "lucide-react";
 
 type CategoryItem = {
@@ -43,34 +44,41 @@ export const MenuNavigation = ({ activeSection }: MenuNavigationProps) => {
     },
     {
       id: "3",
+      icon: <Heart size={24} />,
+      label: "Tafsir",
+      route: "/tafsir",
+      isActive: activeSection === "tafsir",
+    },
+    {
+      id: "4",
       icon: <Sun size={24} />,
       label: "Jadwal Sholat",
       route: "/prayer-times",
       isActive: activeSection === "prayer-times",
     },
     {
-      id: "4",
+      id: "5",
       icon: <SunDim size={24} />,
       label: "Do'a Harian",
       route: "/daily-dua",
       isActive: activeSection === "daily-dua",
     },
     {
-      id: "5",
+      id: "6",
       icon: <SunMoon size={24} />,
       label: "Asmaul Husna",
       route: "/asmaul-husna",
       isActive: activeSection === "asmaul-husna",
     },
     {
-      id: "6",
+      id: "7",
       icon: <Moon size={24} />,
       label: "Hadits",
       route: "/hadith",
       isActive: activeSection === "hadith",
     },
     {
-      id: "7",
+      id: "8",
       icon: <MoonStar size={24} />,
       label: "About",
       route: "/about",
