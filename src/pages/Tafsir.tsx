@@ -20,6 +20,7 @@ interface TafsirData {
   deskripsi: string;
   tafsir: {
     id: string;
+    teks: string;
   }[];
 }
 
@@ -29,7 +30,6 @@ const fetchTafsir = async (surahId: number): Promise<TafsirData> => {
     throw new Error("Failed to fetch Tafsir data");
   }
   const data = await response.json();
-  console.log(data);
   return data.data;
 };
 
@@ -38,7 +38,7 @@ const formatHtmlText = (text: string) => {
   if (!text) return "";
   // Replace <i> tags with styled spans for italics
   return text.replace(/<i>(.*?)<\/i>/g, (match, p1) => {
-    return `<em class="italic font-medium">${p1}</em>`;
+    return `<em class="italic font-bold">${p1}</em>`;
   });
 };
 
@@ -195,8 +195,8 @@ const Tafsir = () => {
                 </div>
               </div>
               <div className="p-4">
-                <p className="text-muted-foreground mb-4 text-sm">
-                  {data.deskripsi}
+                <p className="text-muted-foreground mb-4 text-sm"
+                  dangerouslySetInnerHTML={{ __html: formatHtmlText(data.deskripsi) }} >
                 </p>
               </div>
             </div>
@@ -222,7 +222,7 @@ const Tafsir = () => {
                           Ayat {index + 1}
                         </td>
                         <td className="border-b border-border py-3 px-4 text-sm">
-                          <div dangerouslySetInnerHTML={{ __html: formatHtmlText(tafsir.id) }} />
+                          <div dangerouslySetInnerHTML={{ __html: formatHtmlText(tafsir.teks) }} />
                         </td>
                       </tr>
                     ))}
