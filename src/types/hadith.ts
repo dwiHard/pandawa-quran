@@ -9,9 +9,13 @@ export interface HadithInfo {
 
 export interface HadithDetail {
   id: number;
-  arab: string;
-  indo: string;
-  judul: string;
+  arab?: string;
+  indo?: string;
+  judul?: string;
+  contents?: {
+    arab?: string;
+    id?: string;
+  };
 }
 
 export interface HadithSource {

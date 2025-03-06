@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Toaster, toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
+import { BookOpen, Search } from "lucide-react";
 
 interface TafsirVerse {
   id: number;
@@ -38,9 +39,68 @@ const formatHtmlText = (text: string) => {
   if (!text) return "";
   // Replace <i> tags with styled spans for italics
   return text.replace(/<i>(.*?)<\/i>/g, (match, p1) => {
-    return `<em class="italic font-bold">${p1}</em>`;
+    return `<em class="italic font-medium text-primary/90">${p1}</em>`;
   });
 };
+
+const TafsirSkeleton = () => (
+  <div className="space-y-6 animate-pulse">
+    {/* Header skeleton */}
+    <div className="bg-card rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-muted px-4 py-3 border-b border-border">
+        <div className="h-6 bg-muted-foreground/20 rounded w-1/3 mb-2"></div>
+        <div className="flex justify-between">
+          <div className="h-4 bg-muted-foreground/20 rounded w-1/4"></div>
+          <div className="h-4 bg-muted-foreground/20 rounded w-16"></div>
+        </div>
+      </div>
+      <div className="p-4">
+        <div className="h-4 bg-muted-foreground/20 rounded w-full mb-2"></div>
+        <div className="h-4 bg-muted-foreground/20 rounded w-5/6 mb-2"></div>
+        <div className="h-4 bg-muted-foreground/20 rounded w-4/6"></div>
+      </div>
+    </div>
+
+    {/* Table skeleton */}
+    <div className="bg-card rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-muted px-4 py-3 border-b border-border">
+        <div className="h-6 bg-muted-foreground/20 rounded w-1/4"></div>
+      </div>
+      <div className="p-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="border-b border-border py-2 px-2 flex">
+            <div className="h-5 bg-muted-foreground/20 rounded w-16 mr-2"></div>
+            <div className="flex-1">
+              <div className="h-5 bg-muted-foreground/20 rounded w-full mb-2"></div>
+              <div className="h-5 bg-muted-foreground/20 rounded w-5/6"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Verse skeletons */}
+    {[1, 2, 3].map((i) => (
+      <div key={i} className="bg-card rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-muted px-4 py-2 border-b border-border">
+          <div className="h-5 bg-muted-foreground/20 rounded w-1/5"></div>
+        </div>
+        <div className="p-4">
+          <div className="h-8 bg-muted-foreground/20 rounded w-full mb-4 text-right"></div>
+          <div className="h-4 bg-muted-foreground/20 rounded w-full mb-2"></div>
+          <div className="h-4 bg-muted-foreground/20 rounded w-5/6 mb-2"></div>
+          <div className="h-4 bg-muted-foreground/20 rounded w-4/6 mb-2"></div>
+          <div className="border-t border-border mt-4 pt-4">
+            <div className="h-5 bg-muted-foreground/20 rounded w-1/6 mb-2"></div>
+            <div className="h-4 bg-muted-foreground/20 rounded w-full mb-2"></div>
+            <div className="h-4 bg-muted-foreground/20 rounded w-5/6 mb-2"></div>
+            <div className="h-4 bg-muted-foreground/20 rounded w-4/6"></div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 const Tafsir = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -89,20 +149,9 @@ const Tafsir = () => {
     };
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-2 border-t-primary rounded-full animate-spin"></div>
-          <p className="mt-4 text-muted-foreground">Loading tafsir...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background py-8 px-4">
         <div className="bg-card p-8 rounded-lg shadow-sm max-w-md w-full">
           <div className="text-destructive text-center mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -127,7 +176,10 @@ const Tafsir = () => {
       <Toaster position="top-right" />
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">
-          <h1 className="text-2xl md:text-3xl font-medium mb-2">Tafsir Al-Quran</h1>
+          <h1 className="text-2xl md:text-3xl font-medium mb-2 flex items-center justify-center">
+            <BookOpen className="mr-2 h-6 w-6" />
+            Tafsir Al-Quran
+          </h1>
           {data && (
             <p className="text-muted-foreground">
               {data.namaLatin} - {data.arti}
@@ -147,20 +199,13 @@ const Tafsir = () => {
                 }}
                 onFocus={() => setShowDropdown(true)}
                 placeholder="Search for a Surah..."
-                className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-background"
+                className="w-full px-3 py-2 pl-9 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-background"
               />
-              <button
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8a4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                </svg>
-              </button>
+              <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
             
             {showDropdown && (
-              <div className="absolute z-10 w-full mt-1 bg-card shadow-sm rounded-md max-h-60 overflow-auto">
+              <div className="absolute z-10 w-full mt-1 bg-card shadow-md rounded-md max-h-60 overflow-auto">
                 {filteredOptions.length > 0 ? (
                   filteredOptions.map((option) => (
                     <div
@@ -179,12 +224,14 @@ const Tafsir = () => {
           </div>
         </header>
 
-        {data && (
+        {isLoading && <TafsirSkeleton />}
+
+        {data && !isLoading && (
           <div className="space-y-6">
             <div className="bg-card rounded-lg shadow-sm overflow-hidden">
-              <div className="bg-muted px-4 py-3 border-b border-border">
+              <div className="bg-muted/50 px-5 py-4 border-b border-border">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-medium">{data.namaLatin}</h2>
+                  <h2 className="text-xl font-medium">{data.namaLatin}</h2>
                   <div className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
                     {data.tempatTurun}
                   </div>
@@ -194,8 +241,8 @@ const Tafsir = () => {
                   <p className="text-xs text-muted-foreground">{data.jumlahAyat} Ayat</p>
                 </div>
               </div>
-              <div className="p-4">
-                <p className="text-muted-foreground mb-4 text-sm"
+              <div className="p-5">
+                <p className="text-muted-foreground text-sm leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: formatHtmlText(data.deskripsi) }} >
                 </p>
               </div>
@@ -203,26 +250,27 @@ const Tafsir = () => {
 
             {/* Table of verses and interpretations */}
             <div className="bg-card rounded-lg shadow-sm overflow-hidden">
-              <div className="bg-muted px-4 py-3 border-b border-border">
+              <div className="bg-muted/50 px-5 py-4 border-b border-border">
                 <h2 className="text-lg font-medium">Tafsir Summary</h2>
                 <p className="text-xs text-muted-foreground mt-1">Verse by verse interpretations</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
-                  <thead className="bg-muted/50">
+                  <thead className="bg-muted/30">
                     <tr>
-                      <th className="border-b border-border py-2 px-4 text-left text-sm font-medium">Verse</th>
-                      <th className="border-b border-border py-2 px-4 text-left text-sm font-medium">Interpretation</th>
+                      <th className="border-b border-border py-3 px-4 text-left text-sm font-medium">Verse</th>
+                      <th className="border-b border-border py-3 px-4 text-left text-sm font-medium">Interpretation</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.tafsir.map((tafsir, index) => (
-                      <tr key={index} className="hover:bg-muted/40 transition-colors">
-                        <td className="border-b border-border py-3 px-4 text-sm font-medium">
+                      <tr key={index} className="hover:bg-muted/20 transition-colors group">
+                        <td className="border-b border-border py-3 px-4 text-sm font-medium whitespace-nowrap">
                           Ayat {index + 1}
                         </td>
                         <td className="border-b border-border py-3 px-4 text-sm">
-                          <div dangerouslySetInnerHTML={{ __html: formatHtmlText(tafsir.teks) }} />
+                          <div className="prose prose-sm max-w-none leading-relaxed text-foreground/90 group-hover:text-foreground transition-colors" 
+                            dangerouslySetInnerHTML={{ __html: formatHtmlText(tafsir.teks) }} />
                         </td>
                       </tr>
                     ))}
@@ -233,24 +281,24 @@ const Tafsir = () => {
             
             {data.ayat && data.ayat.map((verse, index) => (
               <div key={verse.id} className="bg-card rounded-lg shadow-sm overflow-hidden">
-                <div className="bg-muted px-4 py-2 border-b border-border flex justify-between items-center">
+                <div className="bg-muted/50 px-5 py-3 border-b border-border flex justify-between items-center">
                   <h2 className="text-md font-medium">Ayat {verse.id}</h2>
-                  <div className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full">
+                  <div className="text-xs px-2 py-1 bg-secondary/30 text-secondary-foreground rounded-full">
                     {data.namaLatin}
                   </div>
                 </div>
-                <div className="p-4">
-                  <p className="text-right text-xl mb-3 leading-loose font-arabic">
+                <div className="p-5">
+                  <p className="text-right text-2xl mb-4 leading-loose font-arabic">
                     {verse.arab}
                   </p>
-                  <p className="text-muted-foreground mb-4 text-sm">
+                  <p className="text-foreground/90 mb-4 text-sm leading-relaxed">
                     {verse.translation}
                   </p>
                   {data.tafsir && data.tafsir[index] && (
-                    <div className="mt-4 border-t border-border pt-4">
-                      <h3 className="font-medium mb-2">Tafsir</h3>
+                    <div className="mt-5 border-t border-border pt-4">
+                      <h3 className="font-medium mb-2 text-primary/90">Tafsir</h3>
                       <div 
-                        className="text-sm prose prose-sm max-w-none"
+                        className="text-sm prose prose-sm max-w-none leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: formatHtmlText(data.tafsir[index].id) }}
                       />
                     </div>
