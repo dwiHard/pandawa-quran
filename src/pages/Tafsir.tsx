@@ -33,6 +33,15 @@ const fetchTafsir = async (surahId: number): Promise<TafsirData> => {
   return data.data;
 };
 
+// Format HTML tags in text, specifically handling <i> tags for italics
+const formatHtmlText = (text: string) => {
+  if (!text) return "";
+  // Replace <i> tags with styled spans for italics
+  return text.replace(/<i>(.*?)<\/i>/g, (match, p1) => {
+    return `<em class="italic font-medium">${p1}</em>`;
+  });
+};
+
 const Tafsir = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -191,6 +200,36 @@ const Tafsir = () => {
                 </p>
               </div>
             </div>
+
+            {/* Table of verses and interpretations */}
+            <div className="bg-card rounded-lg shadow-sm overflow-hidden">
+              <div className="bg-muted px-4 py-3 border-b border-border">
+                <h2 className="text-lg font-medium">Tafsir Summary</h2>
+                <p className="text-xs text-muted-foreground mt-1">Verse by verse interpretations</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="border-b border-border py-2 px-4 text-left text-sm font-medium">Verse</th>
+                      <th className="border-b border-border py-2 px-4 text-left text-sm font-medium">Interpretation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.tafsir.map((tafsir, index) => (
+                      <tr key={index} className="hover:bg-muted/40 transition-colors">
+                        <td className="border-b border-border py-3 px-4 text-sm font-medium">
+                          Ayat {index + 1}
+                        </td>
+                        <td className="border-b border-border py-3 px-4 text-sm">
+                          <div dangerouslySetInnerHTML={{ __html: formatHtmlText(tafsir.id) }} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
             
             {data.ayat && data.ayat.map((verse, index) => (
               <div key={verse.id} className="bg-card rounded-lg shadow-sm overflow-hidden">
@@ -210,7 +249,10 @@ const Tafsir = () => {
                   {data.tafsir && data.tafsir[index] && (
                     <div className="mt-4 border-t border-border pt-4">
                       <h3 className="font-medium mb-2">Tafsir</h3>
-                      <p className="text-sm">{data.tafsir[index].id}</p>
+                      <div 
+                        className="text-sm prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: formatHtmlText(data.tafsir[index].id) }}
+                      />
                     </div>
                   )}
                 </div>
