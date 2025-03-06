@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Toaster, toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
-import { BookOpen, Search } from "lucide-react";
+import { BookOpen, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface TafsirVerse {
   id: number;
@@ -106,6 +106,8 @@ const Tafsir = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [surahId, setSurahId] = useState(1); // Default to Surah Al-Fatihah
+  const [currentTafsirPage, setCurrentTafsirPage] = useState(1);
+  const tafsirPerPage = 3; // Number of tafsir items to show per page
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -132,6 +134,7 @@ const Tafsir = () => {
     setSurahId(selectedSurahId);
     setSearchTerm(`Surah ${selectedSurahId}`);
     setShowDropdown(false);
+    setCurrentTafsirPage(1); // Reset to first page when changing surah
     refetch();
     toast.success(`Loaded Surah ${selectedSurahId}`);
   };
@@ -148,6 +151,19 @@ const Tafsir = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Calculate pagination for tafsir interpretations
+  const indexOfLastTafsir = currentTafsirPage * tafsirPerPage;
+  const indexOfFirstTafsir = indexOfLastTafsir - tafsirPerPage;
+  const currentTafsirs = data?.tafsir ? data.tafsir.slice(indexOfFirstTafsir, indexOfLastTafsir) : [];
+  const totalTafsirPages = data?.tafsir ? Math.ceil(data.tafsir.length / tafsirPerPage) : 0;
+
+  // Pagination controls for tafsir
+  const paginate = (pageNumber: number) => {
+    if (pageNumber > 0 && pageNumber <= totalTafsirPages) {
+      setCurrentTafsirPage(pageNumber);
+    }
+  };
 
   if (error) {
     return (
@@ -248,34 +264,84 @@ const Tafsir = () => {
               </div>
             </div>
 
-            {/* Table of verses and interpretations */}
+            {/* Tafsir Interpretations Card with Pagination */}
             <div className="bg-card rounded-lg shadow-sm overflow-hidden">
               <div className="bg-muted/50 px-5 py-4 border-b border-border">
                 <h2 className="text-lg font-medium">Tafsir Summary</h2>
                 <p className="text-xs text-muted-foreground mt-1">Verse by verse interpretations</p>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead className="bg-muted/30">
-                    <tr>
-                      <th className="border-b border-border py-3 px-4 text-left text-sm font-medium">Verse</th>
-                      <th className="border-b border-border py-3 px-4 text-left text-sm font-medium">Interpretation</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.tafsir.map((tafsir, index) => (
-                      <tr key={index} className="hover:bg-muted/20 transition-colors group">
-                        <td className="border-b border-border py-3 px-4 text-sm font-medium whitespace-nowrap">
-                          Ayat {index + 1}
-                        </td>
-                        <td className="border-b border-border py-3 px-4 text-sm">
-                          <div className="prose prose-sm max-w-none leading-relaxed text-foreground/90 group-hover:text-foreground transition-colors" 
-                            dangerouslySetInnerHTML={{ __html: formatHtmlText(tafsir.teks) }} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              
+              <div className="p-5">
+                {currentTafsirs.map((tafsir, index) => (
+                  <div key={indexOfFirstTafsir + index} className="mb-6 last:mb-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="bg-muted px-2 py-1 rounded text-xs font-medium">
+                        Ayat {indexOfFirstTafsir + index + 1}
+                      </div>
+                      <div className="h-px flex-grow bg-border"></div>
+                    </div>
+                    <div 
+                      className="prose prose-sm max-w-none leading-relaxed text-foreground/90"
+                      dangerouslySetInnerHTML={{ __html: formatHtmlText(tafsir.teks) }} 
+                    />
+                  </div>
+                ))}
+                
+                {/* Pagination Control */}
+                {totalTafsirPages > 1 && (
+                  <div className="flex items-center justify-center space-x-2 mt-6 pt-4 border-t border-border">
+                    <button
+                      onClick={() => paginate(currentTafsirPage - 1)}
+                      disabled={currentTafsirPage === 1}
+                      className="p-2 rounded-md border border-input flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: totalTafsirPages }).map((_, idx) => {
+                        // Show only current page, first, last, and pages around current
+                        if (
+                          idx === 0 || 
+                          idx === totalTafsirPages - 1 || 
+                          (idx >= currentTafsirPage - 2 && idx <= currentTafsirPage)
+                        ) {
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => paginate(idx + 1)}
+                              className={`w-8 h-8 rounded-md flex items-center justify-center text-sm ${
+                                currentTafsirPage === idx + 1
+                                  ? "bg-primary text-primary-foreground font-medium"
+                                  : "border border-input hover:bg-muted"
+                              }`}
+                            >
+                              {idx + 1}
+                            </button>
+                          );
+                        }
+                        // Show ellipsis for skipped pages
+                        if (idx === 1 && currentTafsirPage > 3) {
+                          return <span key={idx} className="text-muted-foreground">...</span>;
+                        }
+                        if (idx === totalTafsirPages - 2 && currentTafsirPage < totalTafsirPages - 2) {
+                          return <span key={idx} className="text-muted-foreground">...</span>;
+                        }
+                        return null;
+                      })}
+                    </div>
+                    
+                    <button
+                      onClick={() => paginate(currentTafsirPage + 1)}
+                      disabled={currentTafsirPage === totalTafsirPages}
+                      className="p-2 rounded-md border border-input flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Next page"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             
