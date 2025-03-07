@@ -69,7 +69,7 @@ const PrayerTimes = () => {
     staleTime: 30000, // 30 seconds
   });
 
-    useEffect(() => {
+  useEffect(() => {
     if (timeData) {
       const currentHour = timeData.time.hour;
       const currentMinute = timeData.time.minute;
@@ -220,7 +220,7 @@ const PrayerTimes = () => {
           </div>
         </div>
         
-        <div className="grid grid-cols-6 gap-2 mt-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 mt-6">
           {prayerTimes.map((prayer) => (
             <div 
               key={prayer.name}

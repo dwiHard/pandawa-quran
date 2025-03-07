@@ -1,8 +1,8 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
 import { Toaster } from "sonner";
+import { ChevronUp } from "lucide-react";
 
 interface Name {
   id: number;
@@ -21,10 +21,25 @@ const fetchAsmaulHusna = async () => {
 };
 
 const AsmaulHusna = () => {
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  
   const { data, isLoading, error } = useQuery({
     queryKey: ["asmaulHusna"],
     queryFn: fetchAsmaulHusna,
   });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   if (isLoading) {
     return (
@@ -99,6 +114,17 @@ const AsmaulHusna = () => {
             </table>
           </div>
         </div>
+
+        {/* Back to Top Button */}
+        <button
+          onClick={scrollToTop}
+          className={`fixed bottom-6 right-6 bg-primary text-primary-foreground rounded-full p-3 shadow-lg transition-all duration-300 hover:bg-primary/90 ${
+            showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'
+          }`}
+          aria-label="Back to top"
+        >
+          <ChevronUp className="h-5 w-5" />
+        </button>
       </div>
     </div>
   );

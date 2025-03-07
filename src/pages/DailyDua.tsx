@@ -5,16 +5,18 @@ import { Toaster, toast } from "sonner";
 
 interface Dua {
   id: string;
-  doa: string;
+  arab: string;
   ayat: string;
-  latin: string;
+  indo: string;
   artinya: string;
 }
 
 // Fetch a single dua by ID
 const fetchDua = async (id: number): Promise<Dua> => {
   console.log(`Fetching dua with ID: ${id}`);
-  const response = await fetch(`https://api.myquran.com/v1/doa/id/${id}`);
+  const response = await fetch(`https://api.myquran.com/v2/doa/${id}`,{
+     mode: 'no-cors'
+  });
   if (!response.ok) {
     throw new Error(`Failed to fetch dua with id ${id}`);
   }
@@ -50,7 +52,9 @@ const searchDuas = async (keyword: string): Promise<Dua[]> => {
   const promises = [];
   for (let i = startId; i < startId + searchRange; i++) {
     promises.push(
-      fetch(`https://api.myquran.com/v1/doa/id/${i}`)
+      fetch(`https://api.myquran.com/v2/doa/${i}`, {
+        mode: 'no-cors'
+      })
         .then(res => {
           if (!res.ok) throw new Error(`Failed to fetch dua with id ${i}`);
           return res.json();
@@ -75,7 +79,7 @@ const searchDuas = async (keyword: string): Promise<Dua[]> => {
   if (keyword && keyword.trim() !== "") {
     const lowercaseKeyword = keyword.toLowerCase();
     return filteredResults.filter(dua => 
-      dua.doa.toLowerCase().includes(lowercaseKeyword) ||
+      dua.arab.toLowerCase().includes(lowercaseKeyword) ||
       dua.artinya.toLowerCase().includes(lowercaseKeyword)
     );
   }
@@ -135,7 +139,7 @@ const DailyDua = () => {
   useEffect(() => {
     if (randomDua && !selectedDua) {
       setSelectedDua(randomDua);
-      setSearchTerm(randomDua.doa);
+      setSearchTerm(randomDua.arab);
     }
   }, [randomDua, selectedDua]);
 
@@ -154,10 +158,10 @@ const DailyDua = () => {
 
   const handleSelectDua = (dua: Dua) => {
     setSelectedDua(dua);
-    setSearchTerm(dua.doa);
+    setSearchTerm(dua.arab);
     setShowDropdown(false);
     setIsSearching(false);
-    toast.success(`Loaded: ${dua.doa}`);
+    toast.success(`Loaded: ${dua.arab}`);
   };
 
   // Get a new random dua
@@ -173,8 +177,8 @@ const DailyDua = () => {
     try {
       const dua = await fetchDua(id);
       setSelectedDua(dua);
-      setSearchTerm(dua.doa);
-      toast.success(`Loaded: ${dua.doa}`);
+      setSearchTerm(dua.arab);
+      toast.success(`Loaded: ${dua.arab}`);
     } catch (error) {
       toast.error("Failed to find dua with that ID");
     }
@@ -240,7 +244,7 @@ const DailyDua = () => {
                     onClick={() => handleSelectDua(dua)}
                   >
                     <span className="inline-block w-8 text-muted-foreground">{dua.id}.</span>
-                    {dua.doa}
+                    {dua.arab}
                   </div>
                 ))}
               </div>
@@ -266,7 +270,7 @@ const DailyDua = () => {
         {selectedDua ? (
           <div className="bg-card rounded-lg shadow-sm overflow-hidden">
             <div className="bg-muted px-4 py-3 border-b border-border">
-              <h2 className="text-lg font-medium">{selectedDua.doa}</h2>
+              <h2 className="text-lg font-medium">{selectedDua.arab}</h2>
               <p className="text-xs text-muted-foreground">ID: {selectedDua.id}</p>
             </div>
             <div className="p-4">
@@ -274,7 +278,7 @@ const DailyDua = () => {
                 {selectedDua.ayat}
               </p>
               <p className="text-muted-foreground mb-2 italic text-sm">
-                {selectedDua.latin}
+                {selectedDua.indo}
               </p>
               <p className="text-foreground text-sm">
                 {selectedDua.artinya}

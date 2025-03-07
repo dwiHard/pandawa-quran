@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Toaster, toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
+import { ChevronUp } from "lucide-react";
 
 interface QuranVerse {
   id: string;
@@ -39,12 +39,26 @@ const Juz30 = () => {
   const [juzNumber, setJuzNumber] = useState(30); // Default to Juz 30
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [playingVerse, setPlayingVerse] = useState<string | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["quranVerses", juzNumber],
     queryFn: () => fetchQuranVerses(juzNumber),
   });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const juzOptions = Array.from({ length: 30 }, (_, i) => ({
     value: i + 1,
@@ -247,6 +261,17 @@ const Juz30 = () => {
             </div>
           ))}
         </div>
+
+        {/* Back to Top Button */}
+        <button
+          onClick={scrollToTop}
+          className={`fixed bottom-6 right-6 bg-primary text-primary-foreground rounded-full p-3 shadow-lg transition-all duration-300 hover:bg-primary/90 ${
+            showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'
+          }`}
+          aria-label="Back to top"
+        >
+          <ChevronUp className="h-5 w-5" />
+        </button>
       </div>
     </div>
   );

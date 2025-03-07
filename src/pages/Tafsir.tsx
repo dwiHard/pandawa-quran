@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Toaster, toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
-import { BookOpen, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookOpen, Search, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
 
 interface TafsirVerse {
   id: number;
@@ -107,8 +106,23 @@ const Tafsir = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [surahId, setSurahId] = useState(1); // Default to Surah Al-Fatihah
   const [currentTafsirPage, setCurrentTafsirPage] = useState(1);
-  const tafsirPerPage = 3; // Number of tafsir items to show per page
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const tafsirPerPage = 1; // Number of tafsir items to show per page
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const tafsirSummaryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["tafsir", surahId],
@@ -158,10 +172,17 @@ const Tafsir = () => {
   const currentTafsirs = data?.tafsir ? data.tafsir.slice(indexOfFirstTafsir, indexOfLastTafsir) : [];
   const totalTafsirPages = data?.tafsir ? Math.ceil(data.tafsir.length / tafsirPerPage) : 0;
 
-  // Pagination controls for tafsir
+  // Pagination controls for tafsir with scroll
   const paginate = (pageNumber: number) => {
     if (pageNumber > 0 && pageNumber <= totalTafsirPages) {
       setCurrentTafsirPage(pageNumber);
+      // Add scroll to Tafsir Summary section
+      if (tafsirSummaryRef.current) {
+        tafsirSummaryRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
     }
   };
 
@@ -265,7 +286,11 @@ const Tafsir = () => {
             </div>
 
             {/* Tafsir Interpretations Card with Pagination */}
-            <div className="bg-card rounded-lg shadow-sm overflow-hidden">
+            <div 
+              ref={tafsirSummaryRef} 
+              id="tafsir-summary" 
+              className="bg-card rounded-lg shadow-sm overflow-hidden scroll-mt-4"
+            >
               <div className="bg-muted/50 px-5 py-4 border-b border-border">
                 <h2 className="text-lg font-medium">Tafsir Summary</h2>
                 <p className="text-xs text-muted-foreground mt-1">Verse by verse interpretations</p>
@@ -323,7 +348,7 @@ const Tafsir = () => {
                         }
                         // Show ellipsis for skipped pages
                         if (idx === 1 && currentTafsirPage > 3) {
-                          return <span key={idx} className="text-muted-foreground">...</span>;
+                          return <span key={idx } className="text-muted-foreground">...</span>;
                         }
                         if (idx === totalTafsirPages - 2 && currentTafsirPage < totalTafsirPages - 2) {
                           return <span key={idx} className="text-muted-foreground">...</span>;
@@ -374,6 +399,17 @@ const Tafsir = () => {
             ))}
           </div>
         )}
+
+        {/* Back to Top Button */}
+        <button
+          onClick={scrollToTop}
+          className={`fixed bottom-6 right-6 bg-primary text-primary-foreground rounded-full p-3 shadow-lg transition-all duration-300 hover:bg-primary/90 ${
+            showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'
+          }`}
+          aria-label="Back to top"
+        >
+          <ChevronUp className="h-5 w-5" />
+        </button>
       </div>
     </div>
   );
