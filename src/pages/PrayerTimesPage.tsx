@@ -3,10 +3,10 @@ import React from "react";
 import { MenuNavigation } from "@/components/MenuNavigation";
 import PrayerTimes from "@/components/PrayerTimes";
 import { Toaster } from "sonner";
-
+import '@fontsource/poppins';
 const PrayerTimesPage = () => {
   return (
-    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
+    <div style={{ fontFamily: 'Poppins, sans-serif' }} className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
       <Toaster position="top-right" />
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">

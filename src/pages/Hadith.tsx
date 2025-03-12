@@ -10,6 +10,7 @@ import { hadithSources } from "@/components/hadith/HadithData";
 import { fetchHadith, fetchRandomHadith, fetchHadithsInfoBySource } from "@/services/hadithService";
 import { HadithInfo } from "@/types/hadith";
 import { toast } from "sonner";
+import '@fontsource/poppins';
 
 const Hadith = () => {
   const [selectedSource, setSelectedSource] = useState("arbain");
@@ -114,7 +115,7 @@ const Hadith = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
+    <div style={{ fontFamily: 'Poppins, sans-serif' }} className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
       <Toaster position="top-right" />
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">

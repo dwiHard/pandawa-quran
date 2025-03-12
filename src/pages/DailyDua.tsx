@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
 import { Toaster, toast } from "sonner";
+import '@fontsource/poppins';
 
 interface Dua {
   id: string;
@@ -15,12 +16,15 @@ interface Dua {
 const fetchDua = async (id: number): Promise<Dua> => {
   console.log(`Fetching dua with ID: ${id}`);
   const response = await fetch(`https://api.myquran.com/v2/doa/${id}`,{
-     mode: 'no-cors'
+    method: 'GET',
+     mode: 'no-cors',
+     redirect: 'follow'
   });
   if (!response.ok) {
     throw new Error(`Failed to fetch dua with id ${id}`);
   }
   const data = await response.json();
+  console.log(data);
   return data.data;
 };
 
@@ -53,7 +57,9 @@ const searchDuas = async (keyword: string): Promise<Dua[]> => {
   for (let i = startId; i < startId + searchRange; i++) {
     promises.push(
       fetch(`https://api.myquran.com/v2/doa/${i}`, {
-        mode: 'no-cors'
+        method: 'GET',
+        mode: 'no-cors',
+        redirect: 'follow'
       })
         .then(res => {
           if (!res.ok) throw new Error(`Failed to fetch dua with id ${i}`);
@@ -206,7 +212,7 @@ const DailyDua = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
+    <div style={{ fontFamily: 'Poppins, sans-serif' }} className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
       <Toaster position="top-right" />
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">

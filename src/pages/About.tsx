@@ -1,10 +1,10 @@
 
 import React from "react";
 import { MenuNavigation } from "@/components/MenuNavigation";
-
+import '@fontsource/poppins';
 const About = () => {
   return (
-    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
+    <div style={{ fontFamily: 'Poppins, sans-serif' }} className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">
           <h1 className="text-2xl md:text-3xl font-medium mb-2">About</h1>

@@ -56,13 +56,13 @@ export const MenuNavigation = ({ activeSection }: MenuNavigationProps) => {
       route: "/prayer-times",
       isActive: activeSection === "prayer-times",
     },
-    {
-      id: "5",
-      icon: <SunDim size={24} />,
-      label: "Do'a Harian",
-      route: "/daily-dua",
-      isActive: activeSection === "daily-dua",
-    },
+    // {
+    //   id: "5",
+    //   icon: <SunDim size={24} />,
+    //   label: "Do'a Harian",
+    //   route: "/daily-dua",
+    //   isActive: activeSection === "daily-dua",
+    // },
     {
       id: "6",
       icon: <SunMoon size={24} />,
@@ -77,13 +77,13 @@ export const MenuNavigation = ({ activeSection }: MenuNavigationProps) => {
       route: "/hadith",
       isActive: activeSection === "hadith",
     },
-    {
-      id: "8",
-      icon: <MoonStar size={24} />,
-      label: "About",
-      route: "/about",
-      isActive: activeSection === "about",
-    },
+    // {
+    //   id: "8",
+    //   icon: <MoonStar size={24} />,
+    //   label: "About",
+    //   route: "/about",
+    //   isActive: activeSection === "about",
+    // },
   ];
 
   const handleNavigate = (route: string) => {

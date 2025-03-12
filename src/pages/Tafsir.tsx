@@ -3,6 +3,7 @@ import { Toaster, toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
 import { BookOpen, Search, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
+import '@fontsource/poppins';
 
 interface TafsirVerse {
   id: number;
@@ -209,7 +210,7 @@ const Tafsir = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
+    <div style={{ fontFamily: 'Poppins, sans-serif' }} className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
       <Toaster position="top-right" />
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">
@@ -279,7 +280,7 @@ const Tafsir = () => {
                 </div>
               </div>
               <div className="p-5">
-                <p className="text-muted-foreground text-sm leading-relaxed"
+                <p className="text-muted-foreground text-sm leading-relaxed text-justify"
                   dangerouslySetInnerHTML={{ __html: formatHtmlText(data.deskripsi) }} >
                 </p>
               </div>
@@ -306,7 +307,7 @@ const Tafsir = () => {
                       <div className="h-px flex-grow bg-border"></div>
                     </div>
                     <div 
-                      className="prose prose-sm max-w-none leading-relaxed text-foreground/90"
+                      className="prose prose-sm max-w-none leading-relaxed text-muted-foreground text-sm text-justify"
                       dangerouslySetInnerHTML={{ __html: formatHtmlText(tafsir.teks) }} 
                     />
                   </div>

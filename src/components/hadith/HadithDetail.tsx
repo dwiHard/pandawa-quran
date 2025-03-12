@@ -42,8 +42,8 @@ export const HadithDetail = ({
   }
 
   // Check if the hadith content is in different structure based on source API
-  const arabText = displayHadith.arab || (displayHadith as any).contents?.arab || "";
-  const indoText = displayHadith.indo || (displayHadith as any).contents?.id || "";
+  const arabText = displayHadith.arab || (displayHadith as any).ar || "";
+  const indoText = displayHadith.indo || (displayHadith as any).id || "";
 
   return (
     <div className="bg-card rounded-lg shadow-sm overflow-hidden">
@@ -102,7 +102,7 @@ export const HadithDetail = ({
         <p className="text-right text-xl mb-3 leading-loose font-arabic">
           {arabText}
         </p>
-        <p className="text-foreground text-sm mt-4">
+        <p className="text-muted-foreground text-justify text-sm mt-4">
           {indoText}
         </p>
       </div>

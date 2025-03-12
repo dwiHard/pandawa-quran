@@ -12,6 +12,7 @@ export interface HadithDetail {
   arab?: string;
   indo?: string;
   judul?: string;
+  ar?: string;
   contents?: {
     arab?: string;
     id?: string;
