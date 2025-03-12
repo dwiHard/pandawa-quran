@@ -11,7 +11,7 @@ const PrayerTimesPage = () => {
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">
           <h1 className="text-2xl md:text-3xl font-medium mb-2">Jadwal Sholat</h1>
-          <p className="text-muted-foreground">Prayer Times Schedule</p>
+          <p className="text-muted-foreground">untuk wilayah indonesia</p>
           
           <MenuNavigation activeSection="prayer-times" />
         </header>

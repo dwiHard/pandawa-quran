@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Book, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { HadithDetail as HadithDetailType, HadithSource } from "@/types/hadith";
 
 interface HadithDetailProps {
@@ -50,20 +50,14 @@ export const HadithDetail = ({
       <div className="bg-muted px-4 py-3 border-b border-border flex justify-between items-center">
         <div>
           <h2 className="text-lg font-medium flex items-center">
-            <Book className="h-4 w-4 mr-2" />
-            {selectedHadithNumber ? (
-              `${currentSource.name} #${selectedHadithNumber}`
-            ) : (
-              `Random ${currentSource.name} Hadith`
+            {displayHadith.judul && (
+              <span className="text-sm">
+                {displayHadith.judul}
+              </span>
             )}
           </h2>
-          {displayHadith.judul && (
-            <span className="text-sm text-muted-foreground">
-              {displayHadith.judul}
-            </span>
-          )}
         </div>
-        
+
         <div className="flex space-x-2">
           {!selectedHadithNumber && (
             <button

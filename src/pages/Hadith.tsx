@@ -81,8 +81,8 @@ const Hadith = () => {
       <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <header className="text-center mb-10">
-            <h1 className="text-2xl md:text-3xl font-medium mb-2">Hadith</h1>
-            <p className="text-muted-foreground">Hadith Collections</p>
+            <h1 className="text-2xl md:text-3xl font-medium mb-2">Hadits</h1>
+            <p className="text-muted-foreground">Hadits Collections</p>
             
             <MenuNavigation activeSection="hadith" />
           </header>
@@ -101,7 +101,7 @@ const Hadith = () => {
         <div className="max-w-3xl mx-auto">
           <header className="text-center mb-10">
             <h1 className="text-2xl md:text-3xl font-medium mb-2">Hadits</h1>
-            <p className="text-muted-foreground">Hadith Collections</p>
+            <p className="text-muted-foreground">Hadits Collections</p>
             
             <MenuNavigation activeSection="hadith" />
           </header>
@@ -120,7 +120,7 @@ const Hadith = () => {
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">
           <h1 className="text-2xl md:text-3xl font-medium mb-2">Hadits</h1>
-          <p className="text-muted-foreground">Hadith Collections</p>
+          <p className="text-muted-foreground">Hadits Collections</p>
           
           <MenuNavigation activeSection="hadith" />
           

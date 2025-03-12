@@ -4,12 +4,10 @@ import { useNavigate } from "react-router-dom";
 import {
   SunMoon,
   Sun,
-  CloudSun,
-  Moon,
-  SunDim,
-  MoonStar,
   Home,
-  Heart,
+  Book,
+  BookOpenCheck,
+  NotebookPen,
 } from "lucide-react";
 
 type CategoryItem = {
@@ -37,14 +35,14 @@ export const MenuNavigation = ({ activeSection }: MenuNavigationProps) => {
     },
     {
       id: "2",
-      icon: <CloudSun size={24} />,
+      icon: <Book size={24} />,
       label: "Juz 30",
       route: "/juz30",
       isActive: activeSection === "juz30",
     },
     {
       id: "3",
-      icon: <Heart size={24} />,
+      icon: <NotebookPen size={24} />,
       label: "Tafsir",
       route: "/tafsir",
       isActive: activeSection === "tafsir",
@@ -72,7 +70,7 @@ export const MenuNavigation = ({ activeSection }: MenuNavigationProps) => {
     },
     {
       id: "7",
-      icon: <Moon size={24} />,
+      icon: <BookOpenCheck size={24} />,
       label: "Hadits",
       route: "/hadith",
       isActive: activeSection === "hadith",

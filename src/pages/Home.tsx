@@ -10,7 +10,7 @@ const Home = () => {
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">
           <h1 className="text-2xl md:text-3xl font-medium mb-2">Quran Player</h1>
-          <p className="text-muted-foreground">Hardiyanto</p>
+          <p className="text-muted-foreground">Develop by Hardiyanto</p>
           
           <MenuNavigation activeSection="quran-player" />
           

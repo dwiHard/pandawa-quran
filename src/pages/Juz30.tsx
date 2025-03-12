@@ -37,7 +37,7 @@ const fetchQuranVerses = async (juzNumber: number) => {
 const Juz30 = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const [juzNumber, setJuzNumber] = useState(30); // Default to Juz 30
+  const [juzNumber, setJuzNumber] = useState(1);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [playingVerse, setPlayingVerse] = useState<string | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -166,8 +166,8 @@ const Juz30 = () => {
       <Toaster position="top-right" />
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">
-          <h1 className="text-2xl md:text-3xl font-medium mb-2">Quranic Verses</h1>
-          <p className="text-muted-foreground">Juz {juzNumber} - Surah and Transliteration</p>
+          <h1 className="text-2xl md:text-3xl font-medium mb-2">Quran</h1>
+          <p className="text-muted-foreground">Juz {juzNumber} - Surah and Terjemahan</p>
           
           <MenuNavigation activeSection="juz30" />
           

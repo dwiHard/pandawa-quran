@@ -293,8 +293,8 @@ const Tafsir = () => {
               className="bg-card rounded-lg shadow-sm overflow-hidden scroll-mt-4"
             >
               <div className="bg-muted/50 px-5 py-4 border-b border-border">
-                <h2 className="text-lg font-medium">Tafsir Summary</h2>
-                <p className="text-xs text-muted-foreground mt-1">Verse by verse interpretations</p>
+                <h2 className="text-lg font-medium">Tafsir</h2>
+                <p className="text-xs text-muted-foreground mt-1">Tentang Surah {data.namaLatin}</p>
               </div>
               
               <div className="p-5">
