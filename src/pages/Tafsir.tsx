@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Toaster, toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { MenuNavigation } from "@/components/MenuNavigation";
 import { BookOpen, Search, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
 import '@fontsource/poppins';
 
@@ -187,6 +186,40 @@ const Tafsir = () => {
     }
   };
 
+  // Fungsi untuk menentukan halaman mana yang ditampilkan
+  const getPageNumbers = (currentPage: number, totalPages: number) => {
+    const pageNumbers = [];
+    
+    // Selalu tampilkan halaman pertama
+    pageNumbers.push(1);
+    
+    // Tentukan range halaman yang akan ditampilkan di sekitar halaman saat ini
+    let startPage = Math.max(2, currentPage - 1);
+    let endPage = Math.min(totalPages - 1, currentPage + 1);
+    
+    // Tambahkan ellipsis setelah halaman pertama jika diperlukan
+    if (startPage > 2) {
+      pageNumbers.push('...');
+    }
+    
+    // Tambahkan halaman di sekitar halaman saat ini
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+    
+    // Tambahkan ellipsis sebelum halaman terakhir jika diperlukan
+    if (endPage < totalPages - 1) {
+      pageNumbers.push('...');
+    }
+    
+    // Selalu tampilkan halaman terakhir jika totalPages > 1
+    if (totalPages > 1) {
+      pageNumbers.push(totalPages);
+    }
+    
+    return pageNumbers;
+  };
+
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background py-8 px-4">
@@ -210,7 +243,7 @@ const Tafsir = () => {
   }
 
   return (
-    <div style={{ fontFamily: 'Poppins, sans-serif' }} className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
+    <div style={{ fontFamily: 'Poppins, sans-serif' }} className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 pb-24 sm:pt-24">
       <Toaster position="top-right" />
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">
@@ -224,8 +257,6 @@ const Tafsir = () => {
             </p>
           )}
           
-          <MenuNavigation activeSection="tafsir" />
-          
           <div className="mt-6 max-w-xs mx-auto relative" ref={dropdownRef}>
             <div className="relative">
               <input
@@ -237,7 +268,7 @@ const Tafsir = () => {
                 }}
                 onFocus={() => setShowDropdown(true)}
                 placeholder="Search for a Surah..."
-                className="w-full px-3 py-2 pl-9 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-background"
+                className="w-full pl-10 pr-3 py-2 border border-input rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background"
               />
               <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
@@ -313,57 +344,56 @@ const Tafsir = () => {
                   </div>
                 ))}
                 
-                {/* Pagination Control */}
+                {/* Pagination Control yang Lebih Cantik dengan Nomor Halaman */}
                 {totalTafsirPages > 1 && (
-                  <div className="flex items-center justify-center space-x-2 mt-6 pt-4 border-t border-border">
+                  <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-4 mt-8 mb-12 bg-card rounded-lg shadow-sm p-4 border border-border/50">
                     <button
                       onClick={() => paginate(currentTafsirPage - 1)}
                       disabled={currentTafsirPage === 1}
-                      className="p-2 rounded-md border border-input flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                        currentTafsirPage === 1 
+                          ? "opacity-50 cursor-not-allowed" 
+                          : "hover:bg-muted"
+                      }`}
                       aria-label="Previous page"
                     >
                       <ChevronLeft className="h-4 w-4" />
+                      <span className="text-sm">Previous</span>
                     </button>
                     
                     <div className="flex items-center space-x-1">
-                      {Array.from({ length: totalTafsirPages }).map((_, idx) => {
-                        // Show only current page, first, last, and pages around current
-                        if (
-                          idx === 0 || 
-                          idx === totalTafsirPages - 1 || 
-                          (idx >= currentTafsirPage - 2 && idx <= currentTafsirPage)
-                        ) {
-                          return (
-                            <button
-                              key={idx}
-                              onClick={() => paginate(idx + 1)}
-                              className={`w-8 h-8 rounded-md flex items-center justify-center text-sm ${
-                                currentTafsirPage === idx + 1
-                                  ? "bg-primary text-primary-foreground font-medium"
-                                  : "border border-input hover:bg-muted"
-                              }`}
-                            >
-                              {idx + 1}
-                            </button>
-                          );
+                      {getPageNumbers(currentTafsirPage, totalTafsirPages).map((page, index) => {
+                        if (page === '...') {
+                          return <span key={`ellipsis-${index}`} className="text-muted-foreground px-1">...</span>;
                         }
-                        // Show ellipsis for skipped pages
-                        if (idx === 1 && currentTafsirPage > 3) {
-                          return <span key={idx } className="text-muted-foreground">...</span>;
-                        }
-                        if (idx === totalTafsirPages - 2 && currentTafsirPage < totalTafsirPages - 2) {
-                          return <span key={idx} className="text-muted-foreground">...</span>;
-                        }
-                        return null;
+                        
+                        return (
+                          <button
+                            key={`page-${page}`}
+                            onClick={() => paginate(page as number)}
+                            className={`w-8 h-8 rounded-md flex items-center justify-center text-sm ${
+                              currentTafsirPage === page
+                                ? "bg-primary text-primary-foreground font-medium"
+                                : "border border-input hover:bg-muted"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        );
                       })}
                     </div>
                     
                     <button
                       onClick={() => paginate(currentTafsirPage + 1)}
                       disabled={currentTafsirPage === totalTafsirPages}
-                      className="p-2 rounded-md border border-input flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                        currentTafsirPage === totalTafsirPages 
+                          ? "opacity-50 cursor-not-allowed" 
+                          : "hover:bg-muted"
+                      }`}
                       aria-label="Next page"
                     >
+                      <span className="text-sm">Next</span>
                       <ChevronRight className="h-4 w-4" />
                     </button>
                   </div>
@@ -401,10 +431,10 @@ const Tafsir = () => {
           </div>
         )}
 
-        {/* Back to Top Button */}
+        {/* Back to Top Button yang Diperbaiki untuk Mode Mobile */}
         <button
           onClick={scrollToTop}
-          className={`fixed bottom-6 right-6 bg-primary text-primary-foreground rounded-full p-3 shadow-lg transition-all duration-300 hover:bg-primary/90 ${
+          className={`fixed bottom-20 sm:bottom-6 right-6 bg-primary text-primary-foreground rounded-full p-3 shadow-lg transition-all duration-300 hover:bg-primary/90 ${
             showBackToTop ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'
           }`}
           aria-label="Back to top"

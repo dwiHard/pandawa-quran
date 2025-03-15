@@ -1,108 +1,54 @@
-
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  SunMoon,
-  Sun,
+import { Link } from "react-router-dom";
+import { 
+  BookOpen, 
+  Clock, 
+  Heart, 
+  Star, 
+  BookText, 
   Home,
-  Book,
-  BookOpenCheck,
-  NotebookPen,
+  Info
 } from "lucide-react";
-
-type CategoryItem = {
-  id: string;
-  icon: React.ReactNode;
-  label: string;
-  route: string;
-  isActive?: boolean;
-};
 
 interface MenuNavigationProps {
   activeSection: string;
 }
 
-export const MenuNavigation = ({ activeSection }: MenuNavigationProps) => {
-  const navigate = useNavigate();
-
-  const categories: CategoryItem[] = [
-    {
-      id: "1",
-      icon: <Home size={24} />,
-      label: "Home",
-      route: "/quran-player",
-      isActive: activeSection === "quran-player",
-    },
-    {
-      id: "2",
-      icon: <Book size={24} />,
-      label: "Al-Qur'an",
-      route: "/juz30",
-      isActive: activeSection === "juz30",
-    },
-    {
-      id: "3",
-      icon: <NotebookPen size={24} />,
-      label: "Tafsir",
-      route: "/tafsir",
-      isActive: activeSection === "tafsir",
-    },
-    {
-      id: "4",
-      icon: <Sun size={24} />,
-      label: "Jadwal Sholat",
-      route: "/prayer-times",
-      isActive: activeSection === "prayer-times",
-    },
-    // {
-    //   id: "5",
-    //   icon: <SunDim size={24} />,
-    //   label: "Do'a Harian",
-    //   route: "/daily-dua",
-    //   isActive: activeSection === "daily-dua",
-    // },
-    {
-      id: "6",
-      icon: <SunMoon size={24} />,
-      label: "Asmaul Husna",
-      route: "/asmaul-husna",
-      isActive: activeSection === "asmaul-husna",
-    },
-    {
-      id: "7",
-      icon: <BookOpenCheck size={24} />,
-      label: "Hadits",
-      route: "/hadith",
-      isActive: activeSection === "hadith",
-    },
-    // {
-    //   id: "8",
-    //   icon: <MoonStar size={24} />,
-    //   label: "About",
-    //   route: "/about",
-    //   isActive: activeSection === "about",
-    // },
+export const MenuNavigation: React.FC<MenuNavigationProps> = ({ activeSection }) => {
+  const menuItems = [
+    { id: "home", label: "Home", path: "/quran-player", icon: <Home className="w-4 h-4" /> },
+    { id: "juz30", label: "Quran", path: "/juz30", icon: <BookOpen className="w-4 h-4" /> },
+    { id: "tafsir", label: "Tafsir", path: "/tafsir", icon: <Heart className="w-4 h-4" /> },
+    { id: "prayer-times", label: "Prayer Times", path: "/prayer-times", icon: <Clock className="w-4 h-4" /> },
+    { id: "asmaul-husna", label: "Asmaul Husna", path: "/asmaul-husna", icon: <Star className="w-4 h-4" /> },
+    { id: "hadith", label: "Hadith", path: "/hadith", icon: <BookText className="w-4 h-4" /> },
+    { id: "about", label: "About", path: "/about", icon: <Info className="w-4 h-4" /> },
   ];
 
-  const handleNavigate = (route: string) => {
-    navigate(route);
-  };
-
   return (
-    <nav className="w-full overflow-x-auto">
-      <div className="flex gap-4 p-4">
-        {categories.map((category) => (
-          <div
-            key={category.id}
-            className={`flex flex-col items-center min-w-[80px] p-4 rounded-xl cursor-pointer transition-colors
-              ${category.isActive ? "bg-card-foreground text-foreground" : "bg-card text-foreground"}`}
-            onClick={() => handleNavigate(category.route)}
-          >
-            {category.icon}
-            <span className="mt-2 text-sm">{category.label}</span>
-          </div>
-        ))}
+    <div className="mt-8 mb-6">
+      <div className="bg-card rounded-xl shadow-md border border-border/50 p-2 overflow-x-auto">
+        <div className="flex min-w-max">
+          {menuItems.map((item) => (
+            <Link
+              key={item.id}
+              to={item.path}
+              className={`
+                flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
+                ${
+                  activeSection === item.id
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }
+                mx-1 first:ml-0 last:mr-0
+              `}
+            >
+              <span className="mr-2">{item.icon}</span>
+              {item.label}
+            </Link>
+          ))}
+        </div>
       </div>
-    </nav>
+    </div>
   );
 };

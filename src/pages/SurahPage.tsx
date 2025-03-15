@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Toaster, toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { MenuNavigation } from "@/components/MenuNavigation";
-import { ChevronUp, Info, X } from "lucide-react";
+import { ChevronUp, Info, X, Search, Book, BookOpen, Volume2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import '@fontsource/poppins';
 
@@ -271,30 +270,30 @@ const SurahPage = () => {
   ];
 
   return (
-    <div style={{ fontFamily: 'Poppins, sans-serif' }} className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
+    <div style={{ fontFamily: 'Poppins, sans-serif' }} className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 pb-24 sm:pt-24">
       <Toaster position="top-right" />
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">
-          <h1 className="text-2xl md:text-3xl font-medium mb-2">Quran</h1>
-          <p className="text-muted-foreground">
-            {surahData ? `${surahData.namaLatin} - ${surahData.arti}` : "Surah Al-Quran"}
-          </p>
+          <h1 className="text-2xl md:text-3xl font-medium mb-2">Al-Quran</h1>
+          <p className="text-muted-foreground">Surah and Terjemahan</p>
           
-          <MenuNavigation activeSection="juz30" />
-          
-          <div className="flex justify-center space-x-4 mt-4 mb-6">
-            <Link 
-              to="/juz30" 
-              className="px-4 py-2 rounded-md bg-card hover:bg-muted transition-colors"
-            >
-              JUZ 30
-            </Link>
-            <Link 
-              to="/surah" 
-              className="px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium"
-            >
-              Surah
-            </Link>
+          <div className="flex justify-center mt-6 mb-8">
+            <div className="bg-card rounded-full p-1 shadow-sm border border-border/50 flex">
+              <Link 
+                to="/juz30" 
+                className="px-5 py-2 rounded-full flex items-center space-x-2 hover:bg-muted transition-colors"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>JUZ 30</span>
+              </Link>
+              <Link 
+                to="/surah" 
+                className="px-5 py-2 rounded-full flex items-center space-x-2 bg-primary text-primary-foreground font-medium"
+              >
+                <Book className="w-4 h-4" />
+                <span>Surah</span>
+              </Link>
+            </div>
           </div>
           
           <div className="mt-6 max-w-xs mx-auto relative" ref={dropdownRef}>
@@ -308,25 +307,18 @@ const SurahPage = () => {
                 }}
                 onFocus={() => setShowDropdown(true)}
                 placeholder="Search for a Surah..."
-                className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-background"
+                className="w-full pl-10 pr-3 py-2 border border-input rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background"
               />
-              <button
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8a4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                </svg>
-              </button>
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             </div>
             
             {showDropdown && allSurahs && (
-              <div className="absolute z-10 w-full mt-1 bg-card shadow-sm rounded-md max-h-60 overflow-auto">
+              <div className="absolute z-10 w-full mt-2 bg-card shadow-md rounded-lg max-h-60 overflow-auto border border-border/50">
                 {filteredSurahs && filteredSurahs.length > 0 ? (
                   filteredSurahs.map((surah) => (
                     <div
                       key={surah.nomor}
-                      className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
+                      className="px-4 py-2 hover:bg-muted cursor-pointer text-sm border-b border-border/20 last:border-0"
                       onClick={() => handleSearch(surah.nomor.toString())}
                     >
                       <span className="inline-block w-8 text-muted-foreground">{surah.nomor}.</span>
@@ -334,7 +326,7 @@ const SurahPage = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="px-3 py-2 text-muted-foreground text-sm">No results found</div>
+                  <div className="px-4 py-3 text-muted-foreground text-sm text-center">No results found</div>
                 )}
               </div>
             )}
@@ -342,15 +334,13 @@ const SurahPage = () => {
           
           {surahData && (
             <div className="mt-6 flex flex-col items-center space-y-4">
-
-              
-              <div className="flex items-center space-x-2">
-                <label htmlFor="reciter" className="text-sm">Audio:</label>
+              <div className="flex items-center space-x-2 bg-card rounded-full px-4 py-2 shadow-sm border border-border/50">
+                <Volume2 className="w-4 h-4 text-primary" />
                 <select
                   id="reciter"
                   value={selectedReciter}
                   onChange={(e) => setSelectedReciter(e.target.value)}
-                  className="px-2 py-1 text-sm border border-input rounded-md bg-background"
+                  className="bg-transparent text-sm border-none focus:outline-none focus:ring-0"
                 >
                   {reciters.map(reciter => (
                     <option key={reciter.id} value={reciter.id}>
@@ -428,54 +418,55 @@ const SurahPage = () => {
           </div>
         )}
 
-        {/* Surah Info Modal */}
+        {/* Surah Info Modal yang lebih menarik */}
         {showModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div 
               ref={modalRef}
-              className="bg-card rounded-lg shadow-lg max-w-md w-full p-6 max-h-[80vh] overflow-y-auto"
+              className="bg-card rounded-xl shadow-xl max-w-md w-full p-6 max-h-[80vh] overflow-y-auto border border-border/50"
+              style={{ transform: 'translateY(0px)', opacity: 1, transition: 'all 0.3s ease' }}
             >
               {isLoadingSurahInfo ? (
                 <div className="flex flex-col items-center justify-center py-8">
-                  <div className="w-8 h-8 border-2 border-t-primary rounded-full animate-spin mb-4"></div>
+                  <div className="w-10 h-10 border-3 border-t-primary rounded-full animate-spin mb-4"></div>
                   <p className="text-sm text-muted-foreground">Loading surah information...</p>
                 </div>
               ) : surahDetail && (
                 <>
-                  <div className="flex justify-between items-start mb-4">
+                  <div className="flex justify-between items-start mb-6">
                     <div>
-                      <h3 className="text-xl font-medium">{surahDetail.namaLatin}</h3>
-                      <p className="text-muted-foreground text-sm">{surahDetail.arti}</p>
+                      <h3 className="text-2xl font-medium">{surahDetail.namaLatin}</h3>
+                      <p className="text-muted-foreground text-sm mt-1">{surahDetail.arti}</p>
                     </div>
                     <button
                       onClick={() => setShowModal(false)}
-                      className="p-1 rounded-full hover:bg-muted transition-colors"
+                      className="p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                       aria-label="Close modal"
                     >
                       <X className="w-5 h-5" />
                     </button>
                   </div>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="text-sm font-medium mb-1">Surah Number</h4>
-                        <p className="text-sm">{surahDetail.nomor}</p>
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <h4 className="text-sm font-medium mb-2 text-primary">Surah Number</h4>
+                        <p className="text-lg">{surahDetail.nomor}</p>
                       </div>
-                      <div>
-                        <h4 className="text-sm font-medium mb-1">Revealed in</h4>
-                        <p className="text-sm">{surahDetail.tempatTurun}</p>
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <h4 className="text-sm font-medium mb-2 text-primary">Revealed in</h4>
+                        <p className="text-lg">{surahDetail.tempatTurun}</p>
                       </div>
-                      <div>
-                        <h4 className="text-sm font-medium mb-1">Number of Verses</h4>
-                        <p className="text-sm">{surahDetail.jumlahAyat}</p>
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <h4 className="text-sm font-medium mb-2 text-primary">Number of Verses</h4>
+                        <p className="text-lg">{surahDetail.jumlahAyat}</p>
                       </div>
                     </div>
                     
                     {surahDetail.audioFull && (
-                      <div>
-                        <h4 className="text-sm font-medium mb-1">Full Audio</h4>
-                        <audio controls className="w-full mt-1">
+                      <div className="bg-muted/30 rounded-lg p-4">
+                        <h4 className="text-sm font-medium mb-3 text-primary">Full Audio</h4>
+                        <audio controls className="w-full mt-1 audio-player">
                           <source src={surahDetail.audioFull[selectedReciter]} type="audio/mpeg" />
                           Your browser does not support the audio element.
                         </audio>
@@ -483,8 +474,10 @@ const SurahPage = () => {
                     )}
                     
                     <div>
-                      <h4 className="text-sm font-medium mb-1">Description</h4>
-                      <p className="text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: formatHtmlText(surahDetail.deskripsi) }} />
+                      <h4 className="text-sm font-medium mb-3 text-primary">Description</h4>
+                      <div className="bg-muted/30 rounded-lg p-4 text-sm text-muted-foreground leading-relaxed">
+                        <p dangerouslySetInnerHTML={{ __html: formatHtmlText(surahDetail.deskripsi) }} />
+                      </div>
                     </div>
                   </div>
                 </>

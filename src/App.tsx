@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { NavBarDemo } from "@/components/ui/navbar-demo";
 import Home from "./pages/Home";
 import Juz30 from "./pages/Juz30";
 import Tafsir from "./pages/Tafsir";
@@ -22,6 +23,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <NavBarDemo />
         <Routes>
           <Route path="/" element={<Navigate to="/quran-player" replace />} />
           <Route path="/quran-player" element={<Home />} />

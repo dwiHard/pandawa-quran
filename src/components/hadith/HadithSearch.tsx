@@ -80,8 +80,8 @@ export const HadithSearch = ({
               handleSearchByNumber();
             }
           }}
-          placeholder={`Search in ${currentSource.name} (1-${currentSource.range})...`}
-          className="w-full pl-10 pr-3 py-2 border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-background"
+          placeholder={`Search in (1-${currentSource.range})...`}
+          className="w-full pl-10 pr-3 py-2 border border-input rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background"
         />
         <button
           onClick={() => handleSearchByNumber()}

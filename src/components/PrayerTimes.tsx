@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { Moon, Sun, Sunrise, Sunset } from "lucide-react";
+import { Moon, Sun, Sunrise, Sunset, MapPin, Calendar, Clock, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface PrayerTimesData {
@@ -67,6 +67,7 @@ const PrayerTimes = () => {
   const [cityCode, setCityCode] = useState<string>("1501");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
+  const [showCityModal, setShowCityModal] = useState<boolean>(false);
   
   // Format current date as YYYY-MM-DD
   const today = new Date();
@@ -104,6 +105,7 @@ const PrayerTimes = () => {
     setCityCode(id);
     setSearchTerm("");
     setShowDropdown(false);
+    setShowCityModal(false);
     toast.success(`Jadwal sholat untuk ${name} telah dimuat`);
     refetch();
   };
@@ -177,17 +179,18 @@ const PrayerTimes = () => {
 
   if (isLoading && !data) {
     return (
-      <div className="flex items-center justify-center p-4">
-        <div className="w-4 h-4 border border-t-primary rounded-full animate-spin"></div>
-        <p className="ml-2 text-sm text-muted-foreground">Loading prayer times...</p>
+      <div className="flex items-center justify-center p-8">
+        <div className="w-12 h-12 border-2 border-t-primary rounded-full animate-spin"></div>
+        <p className="ml-4 text-lg text-muted-foreground">Loading prayer times...</p>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="bg-card p-4 rounded-lg text-muted-foreground text-sm">
-        <p>Failed to load prayer times</p>
+      <div className="bg-destructive/10 text-destructive p-6 rounded-lg text-center">
+        <p className="text-lg font-medium mb-2">Failed to load prayer times</p>
+        <p className="text-sm">Please check your connection and try again</p>
       </div>
     );
   }
@@ -223,123 +226,197 @@ const PrayerTimes = () => {
     { 
       name: "Subuh", 
       time: data.jadwal.subuh, 
-      icon: <Moon className="h-4 w-4 text-muted-foreground" />,
+      icon: <Moon className="h-5 w-5 text-primary" />,
       isCurrent: currentPrayer === "subuh"
     },
     { 
       name: "Terbit", 
       time: data.jadwal.terbit, 
-      icon: <Sunrise className="h-4 w-4 text-muted-foreground" />,
+      icon: <Sunrise className="h-5 w-5 text-amber-500" />,
       isCurrent: currentPrayer === "terbit"
     },
     { 
       name: "Zuhur", 
       time: data.jadwal.dzuhur, 
-      icon: <Sun className="h-4 w-4 text-muted-foreground" />,
+      icon: <Sun className="h-5 w-5 text-yellow-500" />,
       isCurrent: currentPrayer === "dzuhur"
     },
     { 
       name: "Ashar", 
       time: data.jadwal.ashar, 
-      icon: <Sun className="h-4 w-4 text-muted-foreground" />,
+      icon: <Sun className="h-5 w-5 text-orange-500" />,
       isCurrent: currentPrayer === "ashar"
     },
     { 
       name: "Maghrib", 
       time: data.jadwal.maghrib, 
-      icon: <Sunset className="h-4 w-4 text-muted-foreground" />,
+      icon: <Sunset className="h-5 w-5 text-red-500" />,
       isCurrent: currentPrayer === "maghrib"
     },
     { 
       name: "Isya", 
       time: data.jadwal.isya, 
-      icon: <Moon className="h-4 w-4 text-muted-foreground" />,
+      icon: <Moon className="h-5 w-5 text-indigo-500" />,
       isCurrent: currentPrayer === "isya"
     }
   ];
 
   return (
-    <div className="space-y-6">
-      {/* City Selection Dropdown */}
-      <div className="city-dropdown-container relative">
-        <label htmlFor="city-search" className="block text-sm font-medium mb-1">
-          Pilih Kota
-        </label>
-        <div className="relative">
-          <input
-            id="city-search"
-            type="text"
-            placeholder="Cari kota..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setShowDropdown(true);
-            }}
-            onClick={() => setShowDropdown(true)}
-            className="w-full px-3 py-2 border border-input rounded-md bg-background"
-          />
-          <button
-            type="button"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-            onClick={() => setShowDropdown(!showDropdown)}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </div>
-        
-        {showDropdown && (
-          <div className="absolute z-10 w-full mt-1 bg-card shadow-sm rounded-md max-h-60 overflow-auto">
-            {isLoadingCities ? (
-              <div className="px-3 py-2 text-muted-foreground text-sm">Loading cities...</div>
-            ) : filteredCities && filteredCities.length > 0 ? (
-              filteredCities.map((city) => (
-                <div
-                  key={city.id}
-                  className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
-                  onClick={() => handleCitySelect(city.id, city.lokasi)}
-                >
-                  {city.lokasi}
-                </div>
-              ))
-            ) : (
-              <div className="px-3 py-2 text-muted-foreground text-sm">No cities found</div>
-            )}
-          </div>
-        )}
+    <div className="space-y-8">
+      {/* City Selection Button */}
+      <div className="city-dropdown-container">
+        <button 
+          onClick={() => setShowCityModal(true)}
+          className="flex items-center space-x-2 px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
+        >
+          <MapPin className="h-4 w-4" />
+          <span>{data.lokasi || "Pilih Kota"}</span>
+        </button>
       </div>
 
-      {/* Prayer Times Display */}
-      <div className="bg-muted p-4 text-foreground rounded-lg">
-        <div className="flex justify-between items-start">
+      {/* Current Time and Location Display */}
+      <div className="bg-card rounded-xl p-6 shadow-lg border border-border/50">
+        <div className="flex justify-between items-start mb-6">
           <div>
-            <h3 className="text-sm text-muted-foreground">{currentTimeDisplay.name}</h3>
-            <p className="text-3xl font-medium tracking-wider">
-              {currentTime}
-            </p>
+            <div className="flex items-center space-x-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              <h2 className="text-2xl font-semibold text-foreground">{data.lokasi}</h2>
+            </div>
+            <div className="flex items-center space-x-2 mt-1 text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <p>{hijriDate}</p>
+            </div>
           </div>
           <div className="text-right">
-            <h3 className="text-base font-medium">{data.lokasi}</h3>
-            <p className="text-sm text-muted-foreground">{hijriDate}</p>
+            <div className="flex items-center justify-end space-x-2">
+              <Clock className="h-5 w-5 text-primary" />
+              <div className="text-4xl font-bold tracking-tight text-foreground">
+                {currentTime}
+              </div>
+            </div>
+            <p className="text-sm text-primary font-medium mt-1">
+              {currentTimeDisplay.name}
+            </p>
           </div>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 mt-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
           {prayerTimes.map((prayer) => (
             <div 
               key={prayer.name}
-              className={`p-2 rounded-md flex flex-col items-center ${
-                prayer.isCurrent ? "bg-primary/10 text-primary" : "bg-card text-foreground"
+              className={`flex flex-col items-center justify-center p-4 rounded-lg transition-all ${
+                prayer.isCurrent 
+                  ? "bg-primary/10 border-2 border-primary/20" 
+                  : "bg-card hover:bg-muted/50 border border-border"
               }`}
             >
-              <p className="text-xs font-medium">{prayer.name}</p>
-              {prayer.icon}
-              <p className="text-xs mt-1">{prayer.time}</p>
+              <div className="mb-2">{prayer.icon}</div>
+              <p className={`text-sm font-medium mb-1 ${prayer.isCurrent ? "text-primary" : "text-foreground"}`}>
+                {prayer.name}
+              </p>
+              <p className={`text-sm ${prayer.isCurrent ? "text-primary" : "text-muted-foreground"}`}>
+                {prayer.time}
+              </p>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Additional Prayer Times */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-card rounded-xl p-6 border border-border/50">
+          <h3 className="text-lg font-medium mb-4 text-foreground">Additional Times</h3>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <Moon className="h-5 w-5 text-primary mr-3" />
+                <span className="text-foreground">Imsak</span>
+              </div>
+              <span className="text-muted-foreground">{data.jadwal.imsak}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <Sun className="h-5 w-5 text-yellow-500 mr-3" />
+                <span className="text-foreground">Dhuha</span>
+              </div>
+              <span className="text-muted-foreground">{data.jadwal.dhuha}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-card rounded-xl p-6 border border-border/50">
+          <h3 className="text-lg font-medium mb-4 text-foreground">Next Prayer</h3>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Coming up next</p>
+              <p className="text-xl font-semibold text-foreground mt-1">
+                {nextPrayer.charAt(0).toUpperCase() + nextPrayer.slice(1)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Time until</p>
+              <p className="text-xl font-semibold text-primary mt-1">
+                {/* Calculate time difference here */}
+                Soon
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* City Selection Modal */}
+      {showCityModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-lg shadow-lg max-w-md w-full p-6 max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-medium">Pilih Kota</h3>
+              <button
+                onClick={() => setShowCityModal(false)}
+                className="p-1 rounded-full hover:bg-muted transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Cari kota..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 border border-input rounded-md bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              />
+            </div>
+            
+            <div className="overflow-y-auto flex-1 -mx-6 px-6">
+              {isLoadingCities ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-8 h-8 border-2 border-t-primary rounded-full animate-spin mr-3"></div>
+                  <p>Loading cities...</p>
+                </div>
+              ) : filteredCities && filteredCities.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {filteredCities.map((city) => (
+                    <div
+                      key={city.id}
+                      onClick={() => handleCitySelect(city.id, city.lokasi)}
+                      className="p-3 rounded-md hover:bg-primary/10 cursor-pointer transition-colors border border-border/50 hover:border-primary/30"
+                    >
+                      <div className="font-medium text-foreground">{city.lokasi}</div>
+                      <div className="text-xs text-muted-foreground">ID: {city.id}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  {searchTerm ? "No cities found matching your search" : "Type to search for a city"}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MenuNavigation } from "@/components/MenuNavigation";
 import { Toaster } from "sonner";
 import { ChevronUp } from "lucide-react";
 import '@fontsource/poppins';
@@ -50,7 +49,6 @@ const AsmaulHusna = () => {
             <h1 className="text-2xl md:text-3xl font-medium mb-2">Asmaul Husna</h1>
             <p className="text-muted-foreground">The 99 Names of Allah</p>
             
-            <MenuNavigation activeSection="asmaul-husna" />
           </header>
           
           <div className="flex justify-center">
@@ -69,7 +67,6 @@ const AsmaulHusna = () => {
             <h1 className="text-2xl md:text-3xl font-medium mb-2">Asmaul Husna</h1>
             <p className="text-muted-foreground">The 99 Names of Allah</p>
             
-            <MenuNavigation activeSection="asmaul-husna" />
           </header>
           
           <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
@@ -81,14 +78,13 @@ const AsmaulHusna = () => {
   }
 
   return (
-    <div style={{ fontFamily: 'Poppins, sans-serif' }} className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
+    <div style={{ fontFamily: 'Poppins, sans-serif' }} className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8 pb-24 sm:pt-24">
       <Toaster position="top-right" />
       <div className="max-w-3xl mx-auto">
         <header className="text-center mb-10">
           <h1 className="text-2xl md:text-3xl font-medium mb-2">Asmaul Husna</h1>
           <p className="text-muted-foreground">The 99 Names of Allah</p>
           
-          <MenuNavigation activeSection="asmaul-husna" />
         </header>
 
         <div className="bg-card rounded-lg shadow-sm overflow-hidden">

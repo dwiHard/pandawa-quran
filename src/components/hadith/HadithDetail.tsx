@@ -1,6 +1,5 @@
-
 import React from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { HadithDetail as HadithDetailType, HadithSource } from "@/types/hadith";
 
 interface HadithDetailProps {
@@ -62,33 +61,29 @@ export const HadithDetail = ({
           {!selectedHadithNumber && (
             <button
               onClick={onRefreshRandom}
-              className="p-1 rounded hover:bg-muted-foreground/10"
+              className="p-1 rounded hover:bg-muted-foreground/10 flex items-center justify-center"
               title="Load another random hadith"
             >
               <RefreshCw className="h-4 w-4" />
             </button>
           )}
-          {selectedHadithNumber && (
-            <>
-              <button
-                onClick={onNavigatePrevious}
-                disabled={selectedHadithNumber === 1}
-                className="p-1 rounded hover:bg-muted-foreground/10 disabled:opacity-50"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </button>
-              <button
-                onClick={onNavigateNext}
-                disabled={selectedHadithNumber >= currentSource.range}
-                className="p-1 rounded hover:bg-muted-foreground/10 disabled:opacity-50"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                </svg>
-              </button>
-            </>
+          {selectedHadithNumber && selectedHadithNumber > 1 && (
+            <button
+              onClick={onNavigatePrevious}
+              className="p-1 rounded hover:bg-muted-foreground/10 flex items-center justify-center"
+              title="Previous hadith"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
+          {selectedHadithNumber && selectedHadithNumber < currentSource.range && (
+            <button
+              onClick={onNavigateNext}
+              className="p-1 rounded hover:bg-muted-foreground/10 flex items-center justify-center"
+              title="Next hadith"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
           )}
         </div>
       </div>
