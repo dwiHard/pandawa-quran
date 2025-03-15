@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { Toaster, toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { MenuNavigation } from "@/components/MenuNavigation";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, Info, X } from "lucide-react";
 import '@fontsource/poppins';
+import { Link } from "react-router-dom";
 
 interface QuranVerse {
   id: string;
@@ -25,6 +26,16 @@ interface JuzInfo {
   verses: number;
 }
 
+interface SurahInfo {
+  number: string;
+  name?: string;
+  name_id: string;
+  translation?: string;
+  translation_id: string;
+  tafsir: string;
+  description?: string;
+}
+
 const fetchQuranVerses = async (juzNumber: number) => {
   const response = await fetch(`https://api.myquran.com/v2/quran/ayat/juz/${juzNumber}`);
   if (!response.ok) {
@@ -32,6 +43,29 @@ const fetchQuranVerses = async (juzNumber: number) => {
   }
   const data = await response.json();
   return data.data as QuranVerse[];
+};
+
+// Update the fetchSurahInfo function to get data from the API
+const fetchSurahInfo = async (surahNumber: string): Promise<SurahInfo> => {
+  try {
+    const response = await fetch(`https://api.myquran.com/v2/quran/surat/${surahNumber}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch surah info for surah ${surahNumber}`);
+    }
+
+    const data = await response.json();
+    return data.data;
+    
+  } catch (error) {
+    console.error(`Error fetching surah info for surah ${surahNumber}:`, error);
+    // Return default info if API fails
+    return {
+      number: surahNumber,
+      name_id: `Surah ${surahNumber}`,
+      translation_id: "",
+      tafsir: "",
+    };
+  }
 };
 
 const Juz30 = () => {
@@ -42,6 +76,11 @@ const Juz30 = () => {
   const [playingVerse, setPlayingVerse] = useState<string | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedSurah, setSelectedSurah] = useState<SurahInfo | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const [isLoadingSurahInfo, setIsLoadingSurahInfo] = useState(false);
+  const [surahNames, setSurahNames] = useState<Record<string, string>>({});
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["quranVerses", juzNumber],
@@ -120,6 +159,74 @@ const Juz30 = () => {
     };
   }, []);
 
+  const handleInfoClick = async (surahNumber: string) => {
+    setIsLoadingSurahInfo(true);
+    try {
+      const surahInfo = await fetchSurahInfo(surahNumber);
+      setSelectedSurah(surahInfo);
+      setShowModal(true);
+    } catch (error) {
+      console.error("Error fetching surah info:", error);
+      toast.error("Failed to load surah information");
+      
+      // Set default info if API fails
+      setSelectedSurah({
+        number: surahNumber,
+        name_id: `Surah ${surahNumber}`,
+        translation_id: "",
+        tafsir: "",
+      });
+      setShowModal(true);
+    } finally {
+      setIsLoadingSurahInfo(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setShowModal(false);
+      }
+    };
+
+    if (showModal) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showModal]);
+
+  const fetchSurahNames = async () => {
+    if (data) {
+      const uniqueSurahNumbers = [...new Set(data.map(verse => verse.surah))];
+      
+      const surahInfoPromises = uniqueSurahNumbers.map(surahNumber => 
+        fetchSurahInfo(surahNumber)
+      );
+      
+      try {
+        const surahInfoResults = await Promise.all(surahInfoPromises);
+        const surahNamesMap: Record<string, string> = {};
+        
+        surahInfoResults.forEach(info => {
+          if (info && info.number && info.name_id) {
+            surahNamesMap[info.number] = info.name_id;
+          }
+        });
+        
+        setSurahNames(surahNamesMap);
+      } catch (error) {
+        console.error("Error fetching surah names:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchSurahNames();
+  }, [data]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -171,6 +278,21 @@ const Juz30 = () => {
           
           <MenuNavigation activeSection="juz30" />
           
+          <div className="flex justify-center space-x-4 mt-4 mb-6">
+            <Link 
+              to="/juz30" 
+              className="px-4 py-2 rounded-md bg-primary text-primary-foreground font-medium"
+            >
+              JUZ 30
+            </Link>
+            <Link 
+              to="/surah" 
+              className="px-4 py-2 rounded-md bg-card hover:bg-muted transition-colors"
+            >
+              Surah
+            </Link>
+          </div>
+          
           <div className="mt-6 max-w-xs mx-auto relative" ref={dropdownRef}>
             <div className="relative">
               <input
@@ -217,8 +339,17 @@ const Juz30 = () => {
         <div className="space-y-6">
           {Object.entries(versesGroupedBySurah).map(([surahNumber, verses]) => (
             <div key={surahNumber} className="bg-card rounded-lg shadow-sm overflow-hidden">
-              <div className="bg-muted px-4 py-3 border-b border-border">
-                <h2 className="text-lg font-medium">Surah {surahNumber}</h2>
+              <div className="bg-muted px-4 py-3 border-b border-border flex items-center">
+                <h2 className="text-lg font-medium">
+                  {surahNames[surahNumber] || `Surah ${surahNumber}`}
+                </h2>
+                <button 
+                  onClick={() => handleInfoClick(surahNumber)}
+                  className="ml-2 p-1 rounded-full hover:bg-background/50 transition-colors"
+                  aria-label="Show surah information"
+                >
+                  <Info className="w-4 h-4" />
+                </button>
               </div>
               <div className="divide-y divide-border">
                 {verses.map((verse) => (
@@ -262,6 +393,51 @@ const Juz30 = () => {
             </div>
           ))}
         </div>
+
+        {/* Surah Info Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div 
+              ref={modalRef}
+              className="bg-card rounded-lg shadow-lg max-w-md w-full p-6 max-h-[80vh] overflow-y-auto"
+            >
+              {isLoadingSurahInfo ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="w-8 h-8 border-2 border-t-primary rounded-full animate-spin mb-4"></div>
+                  <p className="text-sm text-muted-foreground">Loading surah information...</p>
+                </div>
+              ) : selectedSurah && (
+                <>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-medium">{selectedSurah.name_id}</h3>
+                      <p className="text-muted-foreground text-sm">{selectedSurah.translation_id}</p>
+                    </div>
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="p-1 rounded-full hover:bg-muted transition-colors"
+                      aria-label="Close modal"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-medium mb-1">Surah Number</h4>
+                      <p className="text-sm">{selectedSurah.number}</p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-sm font-medium mb-1">Tafsir</h4>
+                      <p className="text-sm text-muted-foreground">{selectedSurah.tafsir}</p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Back to Top Button */}
         <button

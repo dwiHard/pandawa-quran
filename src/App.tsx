@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +12,7 @@ import AsmaulHusna from "./pages/AsmaulHusna";
 import Hadith from "./pages/Hadith";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
+import SurahPage from "./pages/SurahPage";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +26,7 @@ const App = () => (
           <Route path="/" element={<Navigate to="/quran-player" replace />} />
           <Route path="/quran-player" element={<Home />} />
           <Route path="/juz30" element={<Juz30 />} />
+          <Route path="/surah" element={<SurahPage />} />
           <Route path="/tafsir" element={<Tafsir />} />
           <Route path="/prayer-times" element={<PrayerTimesPage />} />
           <Route path="/daily-dua" element={<DailyDua />} />

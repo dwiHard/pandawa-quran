@@ -36,7 +36,7 @@ export const MenuNavigation = ({ activeSection }: MenuNavigationProps) => {
     {
       id: "2",
       icon: <Book size={24} />,
-      label: "Juz 30",
+      label: "Al-Qur'an",
       route: "/juz30",
       isActive: activeSection === "juz30",
     },

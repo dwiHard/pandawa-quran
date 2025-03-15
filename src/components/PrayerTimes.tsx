@@ -27,6 +27,20 @@ interface PrayerTime {
   isCurrent: boolean;
 }
 
+interface City {
+  id: string;
+  lokasi: string;
+}
+
+const fetchCities = async () => {
+  const response = await fetch('https://api.myquran.com/v2/sholat/kota/semua');
+  if (!response.ok) {
+    throw new Error("Failed to fetch cities");
+  }
+  const data = await response.json();
+  return data.data as City[];
+};
+
 const fetchPrayerTimes = async (cityCode: string, date: string) => {
   const response = await fetch(`https://api.myquran.com/v2/sholat/jadwal/${cityCode}/${date}`);
   if (!response.ok) {
@@ -50,13 +64,23 @@ const PrayerTimes = () => {
   const [nextPrayer, setNextPrayer] = useState<string>("");
   const [hijriDate, setHijriDate] = useState<string>("");
   const [currentTime, setCurrentTimeDisplay] = useState<string>("");
-  const [cityCode] = useState<string>("1501"); // Jawabaru code
+  const [cityCode, setCityCode] = useState<string>("1501");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [showDropdown, setShowDropdown] = useState<boolean>(false);
   
   // Format current date as YYYY-MM-DD
   const today = new Date();
   const formattedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   
-  const { data, isLoading, error } = useQuery({
+  // Fetch all cities
+  const { data: cities, isLoading: isLoadingCities } = useQuery({
+    queryKey: ["cities"],
+    queryFn: fetchCities,
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
+
+  // Fetch prayer times for selected city
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["prayerTimes", cityCode, formattedDate],
     queryFn: () => fetchPrayerTimes(cityCode, formattedDate),
     staleTime: 1000 * 60 * 60, // 1 hour
@@ -68,6 +92,21 @@ const PrayerTimes = () => {
     refetchInterval: 60000, // Refresh every minute
     staleTime: 30000, // 30 seconds
   });
+
+  // Filter cities based on search term
+  const filteredCities = cities?.filter(city => 
+    city.lokasi.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    city.id.includes(searchTerm)
+  );
+
+  // Handle city selection
+  const handleCitySelect = (id: string, name: string) => {
+    setCityCode(id);
+    setSearchTerm("");
+    setShowDropdown(false);
+    toast.success(`Jadwal sholat untuk ${name} telah dimuat`);
+    refetch();
+  };
 
   useEffect(() => {
     if (timeData) {
@@ -121,7 +160,22 @@ const PrayerTimes = () => {
     }
   }, [data]);
 
-  if (isLoading) {
+  // Handle click outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.city-dropdown-container')) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  if (isLoading && !data) {
     return (
       <div className="flex items-center justify-center p-4">
         <div className="w-4 h-4 border border-t-primary rounded-full animate-spin"></div>
@@ -205,8 +259,59 @@ const PrayerTimes = () => {
   ];
 
   return (
-    <div className="bg-card rounded-lg shadow-sm overflow-hidden mt-6">
-      <div className="bg-muted p-4 text-foreground">
+    <div className="space-y-6">
+      {/* City Selection Dropdown */}
+      <div className="city-dropdown-container relative">
+        <label htmlFor="city-search" className="block text-sm font-medium mb-1">
+          Pilih Kota
+        </label>
+        <div className="relative">
+          <input
+            id="city-search"
+            type="text"
+            placeholder="Cari kota..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setShowDropdown(true);
+            }}
+            onClick={() => setShowDropdown(true)}
+            className="w-full px-3 py-2 border border-input rounded-md bg-background"
+          />
+          <button
+            type="button"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        
+        {showDropdown && (
+          <div className="absolute z-10 w-full mt-1 bg-card shadow-sm rounded-md max-h-60 overflow-auto">
+            {isLoadingCities ? (
+              <div className="px-3 py-2 text-muted-foreground text-sm">Loading cities...</div>
+            ) : filteredCities && filteredCities.length > 0 ? (
+              filteredCities.map((city) => (
+                <div
+                  key={city.id}
+                  className="px-3 py-2 hover:bg-muted cursor-pointer text-sm"
+                  onClick={() => handleCitySelect(city.id, city.lokasi)}
+                >
+                  {city.lokasi}
+                </div>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-muted-foreground text-sm">No cities found</div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Prayer Times Display */}
+      <div className="bg-muted p-4 text-foreground rounded-lg">
         <div className="flex justify-between items-start">
           <div>
             <h3 className="text-sm text-muted-foreground">{currentTimeDisplay.name}</h3>
@@ -225,7 +330,7 @@ const PrayerTimes = () => {
             <div 
               key={prayer.name}
               className={`p-2 rounded-md flex flex-col items-center ${
-                prayer.isCurrent ? "bg-card-foreground text-foreground" : "bg-card text-foreground"
+                prayer.isCurrent ? "bg-primary/10 text-primary" : "bg-card text-foreground"
               }`}
             >
               <p className="text-xs font-medium">{prayer.name}</p>
